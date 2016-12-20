@@ -9,7 +9,7 @@ Standalone Ubuntu box containing
 
 Vagrantfile based on [Anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
 
-![box](https://github.com/sergueik/selenium_java/blob/master/fluxbox/screenshots/box.png)
+![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
 
 ### Usage
 
@@ -24,7 +24,7 @@ Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driv
 `SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`.
 
 The error
-![box](https://github.com/sergueik/selenium_java/blob/master/fluxbox/screenshots/session_error.png)
+![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/session_error.png)
 indicates a versions mismatch between Selenium, Geckodriver and Firefox, ChromeDriver and Chrome.
 
 Few supported  combination of old versions are listed below:
