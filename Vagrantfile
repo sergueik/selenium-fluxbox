@@ -8,6 +8,7 @@ use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = %w|
+    55.0.2883.75
     54.0.2840.71
     53.0.2785.116
     52.0.2743.116
@@ -31,7 +32,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = 'ubuntu/trusty64'
   # Localy cached vagrant box images from http://www.vagrantbox.es/ and  http://dev.modern.ie/tools/vms/linux/
   config_vm_box_name = 'trusty-server-amd64-vagrant-selenium.box'
-  # config_vm_box_name = 'ubuntu-16.04-2.3.1.virtualbox.box'
   config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
   config.vm.network :forwarded_port, guest:4444, host:4444
   config.vm.network :private_network, ip: '192.168.33.10'
@@ -44,7 +44,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #=========================================================
 echo Install the packages
 sudo apt-get -qq update
-sudo apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget
+sudo apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget jq
 #=========================================================
 echo Install the OpenJDK 8 backport for trusty
 if false ; then

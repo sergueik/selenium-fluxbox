@@ -61,6 +61,7 @@ vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 ### Work in Progress
  * Probing [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
  * Enabling the [Gecko Driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
+ * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta)
 
 ### Author
 [Serguei Kouzmine](kouzmine_serguei@yahoo.com)
