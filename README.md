@@ -9,17 +9,18 @@ indicates a likely versions mismatch between Selenium, Geckodriver and Firefox, 
 Unfortunately this is especially true with release __3.0.x__  of Selenium.
 One often like to enforce specific past versions of browser-based Selenium testing software stack to be used. 
 Vagrant makes this easy.
-This project offers a standalone Ubuntu Trusty __14.04__ vagrant box instance containing
+![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
+
+This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ vagrant box instance containing
 
  * Fluxbox
  * [Tmux]](https://github.com/tmux/tmux) autologin
- * Stable release of Selenium Server __2.53__
+ * Stable release of Selenium Server __2.53__ or other, user-specified version of Selenium
  * Chrome and Chrome Driver
  * Firefox with optional Gecko Driver
 
 The `Vagrantfile` is based on [Anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
-
-![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
+Upgrading to Ubuntu Xenial __16.04__ __LTS__  is a work in progress.
 
 ### Usage
 
@@ -70,7 +71,7 @@ vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
  * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta)
  * Upgrade Vagrantfile to [xenial Selenium](https://atlas.hashicorp.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box) Virtulbox image
  * Switch to [daily xenial](https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box) virtualbox image.
- * Find alternative location for downlevel chrome browser download, the `http://www.slimjetbrowser.com` is no longer available.
+ * Find alternative download location for downlevel Chrome browser, since the `http://www.slimjetbrowser.com` is no longer available.
 
 ### Author
 [Serguei Kouzmine](kouzmine_serguei@yahoo.com)

@@ -1,11 +1,11 @@
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
-selenium_version = ENV.fetch('SELENIUM_VERSION', '')
-chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '')
-firefox_version = ENV.fetch('FIREFOX_VERSION', '')
+selenium_version = ENV.fetch('SELENIUM_VERSION', '2.53')
+chrome_version = ENV.fetch('CHROME_VERSION', '54.0.2840.71')
+chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '2.24')
+firefox_version = ENV.fetch('FIREFOX_VERSION', '45.0.1')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
-chrome_version = ENV.fetch('CHROME_VERSION', '')
 
-# check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
+# ensure the requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = %w|
     55.0.2883.75
     54.0.2840.71
@@ -47,25 +47,32 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 #!/bin/bash
 #=========================================================
-# set -x
+set -x
+
 if ! grep -q $(cat /etc/hostname) /etc/hosts; then
-  echo >> /etc/hosts
-  echo 127.0.0.1 $(cat /etc/hostname) >> /etc/hosts
+  echo 127.0.0.1 $(cat /etc/hostname) $(cat /etc/hostname) | sudo more /etc/hosts
+  echo 127.0.1.1 vagrant | sudo more /etc/hosts
+  echo 127.0.1.1 localhost | sudo more /etc/hosts
 fi
 #=========================================================
-# echo Clearing the apt proxy settings
+# echo Clearing the proxy settings
 sudo sed -i 's/^/# /' /etc/apt/apt.conf.d/01proxy
-sudo sed -i '/proxy/id' /etc/environment
-sudo rm /etc/profile.d/proxy.sh
+sudo sed -i '/[pP][rR][oO][xX][yY]/I d' /etc/environment
+sudo rm /etc/profile.d/proxy..fl
+unset http_proxy HTTP_PROXY https_proxy HTTPS_PROXY
 #=========================================================
 echo Install the packages
 sudo apt-get -qq update
 sudo apt-get -qqy install openjdk-8-jdk fluxbox xorg unzip vim default-jre rungetty wget jq
 update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 #=========================================================
-echo Set autologin for the ubuntu user
-sudo sed -i '$ d' /etc/init/tty1.conf
-sudo echo 'exec /sbin/rungetty --autologin vagrant tty1' >> /etc/init/tty1.conf
+echo Set autologin for the vagrant user
+sudo  mkdir -pv /etc/systemd/system/getty@tty1.service.d/
+sudo cat <<EOF>/etc/systemd/system/getty@tty1.service.d/autologin.conf
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin vagrant --noclear %I 38400 linux
+EOF
 #=========================================================
 cat <<EOF>> .profile
 if [ ! -e '/tmp/.X0-lock' ] ; then
@@ -208,6 +215,7 @@ then
 fi
 #=========================================================
 echo Set screen resolution
+mkdir /home/vagrant/.fluxbox
 cat <<EOF>> /home/vagrant/.fluxbox/startup
 xrandr -s 1280x800
 EOF
@@ -241,7 +249,7 @@ EOF
 chmod +x /etc/X11/Xsession.d/9999-common_start
 #=========================================================
 echo -n 'Add host alias'
-echo '192.168.33.1 host'| tee /etc/hosts
+echo '192.168.33.1 host'| sudo tee -a /etc/hosts
 #=========================================================
 echo Reboot the VM
 sudo reboot
