@@ -8,6 +8,7 @@ use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = %w|
+    56.0.2924.87
     55.0.2883.75
     54.0.2840.71
     53.0.2785.116

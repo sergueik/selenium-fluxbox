@@ -7,6 +7,7 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 # ensure the requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = %w|
+    56.0.2924.87
     55.0.2883.75
     54.0.2840.71
     53.0.2785.116
@@ -58,7 +59,7 @@ fi
 # echo Clearing the proxy settings
 sudo sed -i 's/^/# /' /etc/apt/apt.conf.d/01proxy
 sudo sed -i '/[pP][rR][oO][xX][yY]/I d' /etc/environment
-sudo rm /etc/profile.d/proxy..fl
+sudo rm /etc/profile.d/proxy.sh
 unset http_proxy HTTP_PROXY https_proxy HTTPS_PROXY
 #=========================================================
 echo Install the packages
