@@ -6,25 +6,29 @@ Likewise the Selenium hub error
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/session_error.png)
 indicates a likely versions mismatch between Selenium, Geckodriver and Firefox, or Selenium, ChromeDriver and Chrome.
 
-Unfortunately this is especially true with release __3.0.x__  of Selenium.
+Unfortunately this is especially true with release __3.2.x__ of Selenium.
 One often like to enforce specific past versions of browser-based Selenium testing software stack to be used.
 Vagrant makes this easy.
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
 
-This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ vagrant box instance containing
+This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ and Xenial __16.04__ Vagrant box instances containing
 
  * [Fluxbox](https://wiki.debian.org/FluxBox)
- * [Tmux]](https://github.com/tmux/tmux) autologin
+ * [Tmux](https://github.com/tmux/tmux) autologin
  * Stable release of Selenium Server __2.53__ or other, user-specified version of Selenium
  * Chrome and Chrome Driver
  * Firefox with optional [Gecko Driver](https://github.com/mozilla/geckodriver/releases)
 
 The `Vagrantfile` is based on [Anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
-The `Vagrantfile.xenial` for Ubuntu Xenial __16.04__ __LTS__  was recently added and may have neeed more testing - use at own risk.
+The `Vagrantfile.xenial` for Ubuntu Xenial __16.04__ __LTS__
+was recently added - use at own risk.
 
 ### Usage
 
-Download the box image [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64) locally, name it `trusty-server-amd64-vagrant-selenium.box` and place in the `~/Downloads` or `$env:USERPROFILE\Downloads`.
+Download the box images of Trusty [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64)
+ or Xenial [vagrant-selenium](https://atlas.hashicorp.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box)
+locally, name it `trusty-server-amd64-vagrant-selenium.box` / `xenial-server-amd64-vagrant-selenium.box` and place inside the `~/Downloads` or `$env:USERPROFILE\Downloads`.
+
 Then run
 ```bash
 export PROVISION_SELENIUM=true
@@ -59,8 +63,8 @@ Check if desired version is available. There is also were few relatively recent 
 Note that the actual download directory `http://www.slimjetbrowser.com/chrome/lnx/` is not directly browsable.
 Alternatively a handful of *really* old Chrome browser debian packages can be  manually downloaded from [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old). Note that these a
 
-Note: the error`Unsupported major.minor version 52.0` is a Java version mismatch.
-You have to switch to JDK 8 by setting the `USE_ORACLE_JAVA` environment to `true` (relevant for Trusty).
+Note: the error `Unsupported major.minor version 52.0` is a manifestation of a Java version mismatch between the Selenium.jar and the environment. For Trusty,
+you will have to switch to JDK 8 by setting the `USE_ORACLE_JAVA` environment to `true` and reprovision.
 
 ### Limitations
   * The hub is available on `http://127.0.0.1:4444/wd/hub/static/resource/hub.html` with some delay after the Virtual Box reboot - currently there is no visual cue on when the box is ready.
@@ -71,10 +75,12 @@ vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 ```
 
 ### Work in Progress
+
  * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
  * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
  * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta)
- * Find alternative download location for downlevel Chrome browser, since the `http://www.slimjetbrowser.com` is no longer available.
+ * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel). More about using headless Chrome see
+   [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
 
 ### Author
 [Serguei Kouzmine](kouzmine_serguei@yahoo.com)
