@@ -7,8 +7,8 @@ chrome_version = ENV.fetch('CHROME_VERSION', '')
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
-    56.0.2924.87
 available_chrome_versions = %w|
+    56.0.2924.87
     55.0.2883.75
     54.0.2840.71
     53.0.2785.116
@@ -20,7 +20,7 @@ available_chrome_versions = %w|
     |
 
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
-  puts 'CHROME_VERSION can be set to "stable", "unstable" "dev" or "beta"'
+  puts 'CHROME_VERSION shoukd be set to "stable", "unstable" "dev" or "beta"'
   puts "Alternatively, few specific old Chrome versions available :\n" + available_chrome_versions.join("\n")
   exit
 end
@@ -239,6 +239,7 @@ tmux send-keys -t chrome-driver:0 'export DISPLAY=:0' C-m
 tmux send-keys -t chrome-driver:0 './chromedriver' C-m
 
 tmux new-session -d -s selenium
+tmux send-keys -t selenium:0 '/usr/bin/xrandr -s 1280x800' C-m
 tmux send-keys -t selenium:0 'export DISPLAY=:0' C-m
 
 # NOTE options for java runtime.
@@ -264,7 +265,6 @@ echo Reboot the VM
 sudo reboot
 
   END_OF_PROVISION
-
   config.vm.provider :virtualbox do |v|
     v.gui = true
     v.name = 'Selenium Fluxbox'
@@ -272,6 +272,7 @@ sudo reboot
     v.customize ['modifyvm', :id, '--vram', '16']
     v.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
     v.customize ['setextradata', 'global', 'GUI/MaxGuestResolution', 'any']
-    v.customize ['setextradata', :id, 'CustomVideoMode1', '1280x900x32']
+    v.customize ['setextradata', :id, 'CustomVideoMode1', '1280x800x32']
+    # VBoxManage controlvm "Selenium Fluxbox" setvideomodehint 1280 800 32
   end
 end
