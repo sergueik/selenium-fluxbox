@@ -7,17 +7,20 @@ chrome_version = ENV.fetch('CHROME_VERSION', '')
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
-available_chrome_versions = %w|
-    56.0.2924.87
-    55.0.2883.75
-    54.0.2840.71
-    53.0.2785.116
-    52.0.2743.116
-    51.0.2704.84
-    50.0.2661.75
-    49.0.2623.75
-    48.0.2564.109
-    |
+available_chrome_versions = [
+  '59.0.3071.86',
+  '58.0.3029.96',
+  '57.0.2987.133',
+  '56.0.2924.87',
+  '55.0.2883.75',
+  '54.0.2840.71',
+  '53.0.2785.116',
+  '52.0.2743.116',
+  '51.0.2704.84',
+  '50.0.2661.75',
+  '49.0.2623.75',
+  '48.0.2564.109',
+]
 
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION shoukd be set to "stable", "unstable" "dev" or "beta"'

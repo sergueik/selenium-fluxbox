@@ -42,6 +42,14 @@ Few supported  combination of old versions are listed below:
 
 |                      |              |
 |----------------------|--------------|
+| SELENIUM_VERSION     | 3.2.0        |
+| FIREFOX_VERSION      | 54.0b13      |
+| GECKODRIVER_VERSION  | 0.17.0       |
+| CHROME_VERSION       | 59.0.3071.86 |
+| CHROMEDRIVER_VERSION | 2.30         |
+
+|                      |              |
+|----------------------|--------------|
 | SELENIUM_VERSION     | 2.53         |
 | FIREFOX_VERSION      | 45.0.1       |
 | CHROME_VERSION       | 54.0.2840.71 |
