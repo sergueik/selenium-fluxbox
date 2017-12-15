@@ -8,6 +8,9 @@ use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '62.0.3202.75',
+  '61.0.3163.79',
+  '60.0.3112.90',
   '59.0.3071.86',
   '58.0.3029.96',
   '57.0.2987.133',
@@ -131,10 +134,14 @@ then
   if [[ $CHROME_VERSION ]]
   then
     case $CHROME_VERSION in
-      beta|stable|unstable)
+    beta|stable|unstable)
+        # as of December 2017 the https://dl.google.com/linux/chrome/deb is occasionally 404 and this will fail (and fail to detect it did fail)
+        # and the only way to install stable Chrome is to interactiely download it
+        # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
+        sudo apt-get -qqy install libnss3
         apt-get install google-chrome-${CHROME_VERSION}
       ;;
       *)

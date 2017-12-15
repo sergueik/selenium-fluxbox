@@ -1,5 +1,14 @@
 ### Info
 
+
+This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ and Xenial __16.04__ Vagrant box instances containing
+
+ * [Fluxbox](https://wiki.debian.org/FluxBox)
+ * [Tmux](https://github.com/tmux/tmux) autologin
+ * Stable release of Selenium Server __2.53__ or other, user-specified version of Selenium
+ * Chrome and Chrome Driver
+ * Firefox with optional [Gecko Driver](https://github.com/mozilla/geckodriver/releases)
+
 The 'bleeding edge' versions of the drivers do not always work well together, e.g. through errors like:
 `org.openqa.selenium.WebDriverException: unknown error: Chrome version must be >= 52.0.2743.0 ...`
 Likewise the Selenium hub error
@@ -10,14 +19,6 @@ Unfortunately this is especially true with release __3.2.x__ of Selenium.
 One often like to enforce specific past versions of browser-based Selenium testing software stack to be used.
 Vagrant makes this easy.
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
-
-This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ and Xenial __16.04__ Vagrant box instances containing
-
- * [Fluxbox](https://wiki.debian.org/FluxBox)
- * [Tmux](https://github.com/tmux/tmux) autologin
- * Stable release of Selenium Server __2.53__ or other, user-specified version of Selenium
- * Chrome and Chrome Driver
- * Firefox with optional [Gecko Driver](https://github.com/mozilla/geckodriver/releases)
 
 The `Vagrantfile` is based on [Anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
 The `Vagrantfile.xenial` for Ubuntu Xenial __16.04__ __LTS__
