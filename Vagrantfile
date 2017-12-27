@@ -8,6 +8,7 @@ use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '63.0.3239.108',
   '62.0.3202.75',
   '61.0.3163.79',
   '60.0.3112.90',
@@ -146,6 +147,8 @@ then
       ;;
       *)
         sudo apt-get remove -qqy -f google-chrome-stable
+        # latest  version available on slimjet:
+        LATEST_CHROME_VERSION=$(curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\n\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)</\1</p" | sed  's|</a>.*$||' | sort -ru  | head -1)
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
         cd /vagrant
