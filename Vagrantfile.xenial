@@ -7,6 +7,8 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 # ensure the requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '64.0.3282.140',
+  '63.0.3239.108',
   '62.0.3202.75',
   '61.0.3163.79',
   '60.0.3112.90',

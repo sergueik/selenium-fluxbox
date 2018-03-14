@@ -8,6 +8,7 @@ use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '64.0.3282.140',
   '63.0.3239.108',
   '62.0.3202.75',
   '61.0.3163.79',
@@ -62,6 +63,11 @@ if false ; then
   sudo apt-get -qq update
   sudo apt-get -qqy install oracle-java8-installer
   sudo apt-get -qqy install oracle-java8-set-default
+  # when installing from downloaded archive will also need
+  # update-alternatives --install /ust/bin/java /usr/lib/jvm/jdk-1.8.0_161/bin/java java 0 
+  # update-alternatives --set java /usr/lib/jvm/jdk-1.8.0_161/bin/java
+  # update-alternatives --set javac /usr/lib/jvm/jdk-1.8.0_161/bin/javac
+  
 fi
 sudo add-apt-repository -y ppa:openjdk-r/ppa
 sudo apt-get -qqy update
@@ -140,6 +146,8 @@ then
         # and the only way to install stable Chrome is to interactiely download it
         # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        # may need a second time for some reason sporadic error
+        # GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
         sudo apt-get -qqy install libnss3
@@ -225,16 +233,17 @@ then
     # https://www.digitalocean.com/community/tutorials/how-to-manually-install-oracle-java-on-a-debian-or-ubuntu-vps
     pushd /vagrant
     PACKAGE_ARCHIVE=jdk-linux-x64.tar.gz
-    URL="http://download.oracle.com/otn-pub/java/jdk/8u5-b13/jdk-8u5-linux-x64.tar.gz"
+    # need to accept the license interactively in http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html to browse
+    URL="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.tar.gz"
     sudo wget -O $PACKAGE_ARCHIVE --header "Cookie: oraclelicense=accept-securebackup-cookie" -nv $URL
     mkdir /opt/oracle-jdk 2>/dev/null
     tar -zxf $PACKAGE_ARCHIVE -C /opt/oracle-jdk
-    update-alternatives --install /usr/bin/java java /opt/oracle-jdk/jdk1.8.0_05/bin/java 100
-    update-alternatives --set java /opt/oracle-jdk/jdk1.8.0_05/bin/java 100
-    update-alternatives --install /usr/bin/javac javac /opt/oracle-jdk/jdk1.8.0_05/bin/javac 100
-    update-alternatives --set javac /opt/oracle-jdk/jdk1.8.0_05/bin/javac 100
+    sudo update-alternatives --install /usr/bin/java java /opt/oracle-jdk/jdk1.8.0_161/bin/java 100
+    sudo update-alternatives --set java /opt/oracle-jdk/jdk1.8.0_161/bin/java
+    sudo update-alternatives --install /usr/bin/javac javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac 100
+    sudo update-alternatives --set javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac
     popd
-  fi
+  fi  
 fi
 #=========================================================
 echo Set screen resolution

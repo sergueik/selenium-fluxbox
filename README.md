@@ -5,7 +5,7 @@ This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ and Xenial __16
 
  * [Fluxbox](https://wiki.debian.org/FluxBox)
  * [Tmux](https://github.com/tmux/tmux) autologin
- * Stable release of Selenium Server __2.53__ or other, user-specified version of Selenium
+ * Stable release of Selenium Server 3.x or legacy __2.53__ or other, user-specified version of Selenium
  * Chrome and Chrome Driver
  * Firefox with optional [Gecko Driver](https://github.com/mozilla/geckodriver/releases)
 
@@ -15,12 +15,14 @@ Likewise the Selenium hub error
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/session_error.png)
 indicates a likely versions mismatch between Selenium, Geckodriver and Firefox, or Selenium, ChromeDriver and Chrome.
 
-Unfortunately this is especially true with release __3.2.x__ of Selenium.
-One often like to enforce specific past versions of browser-based Selenium testing software stack to be used.
-Vagrant makes this easy.
+Unfortunately this has been especially true with early Selenium __3.x__ releases.
+One often wishes to enforce specific past versions of Selenium-based toolchain.
+Vagrant makes this easy. 
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
 
-The `Vagrantfile` is based on [Anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
+Note: Docker makes this easy too, but there is no native Docker port for Windows 8.x and earlier and this could be one's reason to stay with Vagrant
+
+This project `Vagrantfile` is developed based on [Anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
 The `Vagrantfile.xenial` for Ubuntu Xenial __16.04__ __LTS__
 was recently added - use at own risk.
 
@@ -39,7 +41,7 @@ Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driv
 `SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`.
 
 
-Few supported  combination of old versions are listed below:
+Some supported combinations of legacy browser and driver versions are listed below:
 
 |                      |              |
 |----------------------|--------------|
@@ -94,7 +96,7 @@ vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 ### See also:
 
  * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) - this project allows the Java test suite to control (to a certain extent) the verson of the browserdriver for a selection of browsers.
-
+ * [how to disable Chrome Browser auto update](https://stackoverflow.com/questions/18483087/how-to-disable-google-chrome-auto-update)
 
 ### Author
 [Serguei Kouzmine](kouzmine_serguei@yahoo.com)
