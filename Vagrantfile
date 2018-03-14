@@ -5,6 +5,7 @@ firefox_version = ENV.fetch('FIREFOX_VERSION', '')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 chrome_version = ENV.fetch('CHROME_VERSION', '')
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
+debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
@@ -48,42 +49,45 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder './' , '/vagrant'
   config.vm.provision 'shell', inline: <<-END_OF_PROVISION
 #!/bin/bash
-# set -x
+DEBUG='#{debug}'
+if [[ -z $DEBUG ]] ; then
+set -x
+fi
 
 #=========================================================
 echo Install the packages
-sudo apt-get -qq update
-sudo apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget jq
+apt-get -qq update
+apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget jq 
 #=========================================================
 echo Install the OpenJDK 8 backport for trusty
 if false ; then
   # installing the oracle 8 JDK from ppa:webupd8team/java still stops on Oracle Licence Agreement prompt
   # for alternative install set USE_ORACLE_JAVA
-  sudo add-apt-repository ppa:webupd8team/java -y
-  sudo apt-get -qq update
-  sudo apt-get -qqy install oracle-java8-installer
-  sudo apt-get -qqy install oracle-java8-set-default
+  add-apt-repository ppa:webupd8team/java -y
+  apt-get -qq update
+  apt-get -qqy install oracle-java8-installer
+  apt-get -qqy install oracle-java8-set-default
   # when installing from downloaded archive will also need
   # update-alternatives --install /ust/bin/java /usr/lib/jvm/jdk-1.8.0_161/bin/java java 0 
   # update-alternatives --set java /usr/lib/jvm/jdk-1.8.0_161/bin/java
   # update-alternatives --set javac /usr/lib/jvm/jdk-1.8.0_161/bin/javac
   
 fi
-sudo add-apt-repository -y ppa:openjdk-r/ppa
-sudo apt-get -qqy update
-sudo apt-get install -qqy openjdk-8-jdk
+add-apt-repository -y ppa:openjdk-r/ppa
+apt-get -qqy update
+apt-get install -qqy openjdk-8-jdk
 update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 #=========================================================
 echo Set autologin for the Vagrant user
-sudo sed -i '$ d' /etc/init/tty1.conf
-sudo echo 'exec /sbin/rungetty --autologin vagrant tty1' >> /etc/init/tty1.conf
+sed -i '$ d' /etc/init/tty1.conf
+echo 'exec /sbin/rungetty --autologin vagrant tty1' >> /etc/init/tty1.conf
 #=========================================================
 cat <<EOF>> .profile
 if [ ! -e '/tmp/.X0-lock' ] ; then
   echo -n Start X on login
   startx
 else
-  echo X is alredy running..
+  # X is alredy running..
 fi
 EOF
 #=========================================================
@@ -107,10 +111,10 @@ then
     mkdir -p /home/vagrant/firefox
     cd /home/vagrant
     tar xjf "/vagrant/${PACKAGE_ARCHIVE}"
-    sudo cp -R firefox /usr/lib
+    cp -R firefox /usr/lib
   else
     echo Install the latest Firefox
-    sudo apt-get -qqy install firefox
+    apt-get -qqy install firefox
   fi
   #=========================================================
   SELENIUM_VERSION='#{selenium_version}'
@@ -140,23 +144,27 @@ then
   CHROME_VERSION='#{chrome_version}'
   if [[ $CHROME_VERSION ]]
   then
+    echo installing libnss3
+    # https://stackoverflow.com/questions/46126902/fix-nss-version-not-match-when-update-chrome-in-ubuntu
+    # for trusty need the following command may get the correct version of libnss3, which is a prerequisite of Chrome 64+
+    apt-get -qqy install --only-upgrade libnss3
+    echo "installing Chrome $CHROME_VERSION"
     case $CHROME_VERSION in
     beta|stable|unstable)
         # as of December 2017 the https://dl.google.com/linux/chrome/deb is occasionally 404 and this will fail (and fail to detect it did fail)
         # and the only way to install stable Chrome is to interactiely download it
         # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
-        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
         # may need a second time for some reason sporadic error
         # GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
-        sudo apt-get -qqy install libnss3
         apt-get install google-chrome-${CHROME_VERSION}
       ;;
       *)
-        sudo apt-get remove -qqy -f google-chrome-stable
-        # latest  version available on slimjet:
-        LATEST_CHROME_VERSION=$(curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\n\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)</\1</p" | sed  's|</a>.*$||' | sort -ru  | head -1)
+        apt-get remove -qqy -f google-chrome-stable
+        LATEST_CHROME_VERSION=$(curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -ru | head -1)
+        echo latest Chrome version available on slimjet: $LATEST_CHROME_VERSION
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
         cd /vagrant
@@ -168,9 +176,9 @@ then
         else
           echo Using already downloaded archive $PACKAGE_ARCHIVE
         fi
-        sudo apt-get install -qqy libxss1 libappindicator1 libindicator7
-        sudo dpkg -i "chrome64_${CHROME_VERSION}.deb"
-        # sudo rm "chrome64_${CHROME_VERSION}.deb"
+        apt-get install -qqy libxss1 libappindicator1 libindicator7
+        dpkg -i "chrome64_${CHROME_VERSION}.deb"
+        # rm "chrome64_${CHROME_VERSION}.deb"
         cd /home/vagrant
       ;;
     esac
@@ -179,10 +187,10 @@ then
     # http://askubuntu.com/questions/79280/how-to-install-chrome-browser-properly-via-command-line
     cd /tmp
     wget -nv "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-    sudo apt-get install -qqy libxss1 libappindicator1 libindicator7
-    sudo dpkg -i google-chrome-stable_current_amd64.deb
-    sudo rm google-chrome-stable_current_amd64.deb
-    sudo apt-get install -qqy -f google-chrome-stable
+    apt-get install -qqy libxss1 libappindicator1 libindicator7
+    dpkg -i google-chrome-stable_current_amd64.deb
+    rm google-chrome-stable_current_amd64.deb
+    apt-get install -qqy -f google-chrome-stable
     cd -
   fi
   #=========================================================
@@ -219,7 +227,7 @@ then
   URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
   echo Downloading GECKODRIVER version $GECKODRIVER_VERSION from $URL
-  sudo wget -O $ARCHIVE -nv $URL
+  wget -O $ARCHIVE -nv $URL
   cd /home/vagrant
   tar -xzf $ARCHIVE
   chown vagrant:vagrant geckodriver
@@ -235,13 +243,13 @@ then
     PACKAGE_ARCHIVE=jdk-linux-x64.tar.gz
     # need to accept the license interactively in http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html to browse
     URL="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.tar.gz"
-    sudo wget -O $PACKAGE_ARCHIVE --header "Cookie: oraclelicense=accept-securebackup-cookie" -nv $URL
+    wget -O $PACKAGE_ARCHIVE --header "Cookie: oraclelicense=accept-securebackup-cookie" -nv $URL
     mkdir /opt/oracle-jdk 2>/dev/null
     tar -zxf $PACKAGE_ARCHIVE -C /opt/oracle-jdk
-    sudo update-alternatives --install /usr/bin/java java /opt/oracle-jdk/jdk1.8.0_161/bin/java 100
-    sudo update-alternatives --set java /opt/oracle-jdk/jdk1.8.0_161/bin/java
-    sudo update-alternatives --install /usr/bin/javac javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac 100
-    sudo update-alternatives --set javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac
+    update-alternatives --install /usr/bin/java java /opt/oracle-jdk/jdk1.8.0_161/bin/java 100
+    update-alternatives --set java /opt/oracle-jdk/jdk1.8.0_161/bin/java
+    update-alternatives --install /usr/bin/javac javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac 100
+    update-alternatives --set javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac
     popd
   fi  
 fi
@@ -254,7 +262,10 @@ EOF
 echo Install tmux scripts
 cat <<EOF> tmux.sh
 #!/bin/sh
-tmux start-server
+if $(netstat -lp | grep X) ; then
+else
+  tmux start-server
+fi
 
 tmux new-session -d -s chrome-driver
 tmux send-keys -t chrome-driver:0 'export DISPLAY=:0' C-m
