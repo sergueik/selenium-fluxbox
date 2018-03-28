@@ -7,6 +7,7 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 # ensure the requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '65.0.3325.181',
   '64.0.3282.140',
   '63.0.3239.108',
   '62.0.3202.75',
@@ -59,25 +60,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 set -x
 
 if ! grep -q $(cat /etc/hostname) /etc/hosts; then
-  echo 127.0.0.1 $(cat /etc/hostname) $(cat /etc/hostname) | sudo more /etc/hosts
-  echo 127.0.1.1 vagrant | sudo more /etc/hosts
-  echo 127.0.1.1 localhost | sudo more /etc/hosts
+  echo 127.0.0.1 $(cat /etc/hostname) $(cat /etc/hostname) | more /etc/hosts
+  echo 127.0.1.1 vagrant | more /etc/hosts
+  echo 127.0.1.1 localhost | more /etc/hosts
 fi
 #=========================================================
 # echo Clearing the proxy settings
-sudo sed -i 's/^/# /' /etc/apt/apt.conf.d/01proxy
-sudo sed -i '/[pP][rR][oO][xX][yY]/I d' /etc/environment
-sudo rm /etc/profile.d/proxy.sh
+sed -i 's/^/# /' /etc/apt/apt.conf.d/01proxy
+sed -i '/[pP][rR][oO][xX][yY]/I d' /etc/environment
+rm -f /etc/profile.d/proxy.sh
 unset http_proxy HTTP_PROXY https_proxy HTTPS_PROXY
 #=========================================================
 echo Install the packages
-sudo apt-get -qq update
-sudo apt-get -qqy install openjdk-8-jdk fluxbox xorg unzip vim default-jre rungetty wget jq
+apt-get -qq update
+apt-get -qqy install openjdk-8-jdk fluxbox xorg unzip vim default-jre rungetty wget jq
 update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 #=========================================================
 echo Set autologin for the vagrant user
-sudo  mkdir -pv /etc/systemd/system/getty@tty1.service.d/
-sudo cat <<EOF>/etc/systemd/system/getty@tty1.service.d/autologin.conf
+mkdir -pv /etc/systemd/system/getty@tty1.service.d/
+cat <<EOF>/etc/systemd/system/getty@tty1.service.d/autologin.conf
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin vagrant --noclear %I 38400 linux
@@ -112,10 +113,10 @@ then
     mkdir -p /home/vagrant/firefox
     cd /home/vagrant
     tar xjf "/vagrant/${PACKAGE_ARCHIVE}"
-    sudo cp -R firefox /usr/lib
+    cp -R firefox /usr/lib
   else
     echo Install the latest Firefox
-    sudo apt-get -qqy install firefox
+    apt-get -qqy install firefox
   fi
   #=========================================================
   SELENIUM_VERSION='#{selenium_version}'
@@ -145,15 +146,17 @@ then
   CHROME_VERSION='#{chrome_version}'
   if [[ $CHROME_VERSION ]]
   then
+    echo installing libnss3
+    apt-get -qqy install --only-upgrade libnss3
     case $CHROME_VERSION in
       beta|stable|unstable)
-        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
         apt-get install google-chrome-${CHROME_VERSION}
       ;;
       *)
-        sudo apt-get remove -qqy -f google-chrome-stable
+        apt-get remove -qqy -f google-chrome-stable
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
         cd /vagrant
@@ -165,9 +168,9 @@ then
         else
           echo Using already downloaded archive $PACKAGE_ARCHIVE
         fi
-        sudo apt-get install -qqy libxss1 libappindicator1 libindicator7
-        sudo dpkg -i "chrome64_${CHROME_VERSION}.deb"
-        # sudo rm "chrome64_${CHROME_VERSION}.deb"
+        apt-get install -qqy libxss1 libappindicator1 libindicator7
+        dpkg -i "chrome64_${CHROME_VERSION}.deb"
+        # rm "chrome64_${CHROME_VERSION}.deb"
         cd /home/vagrant
       ;;
     esac
@@ -176,10 +179,10 @@ then
     # http://askubuntu.com/questions/79280/how-to-install-chrome-browser-properly-via-command-line
     cd /tmp
     wget -nv "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-    sudo apt-get install -qqy libxss1 libappindicator1 libindicator7
-    sudo dpkg -i google-chrome-stable_current_amd64.deb
-    sudo rm google-chrome-stable_current_amd64.deb
-    sudo apt-get install -qqy -f google-chrome-stable
+    apt-get install -qqy libxss1 libappindicator1 libindicator7
+    dpkg -i google-chrome-stable_current_amd64.deb
+    rm google-chrome-stable_current_amd64.deb
+    apt-get install -qqy -f google-chrome-stable
     cd -
   fi
   #=========================================================
@@ -214,7 +217,7 @@ then
   URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
   echo Downloading GECKODRIVER version $GECKODRIVER_VERSION from $URL
-  sudo wget -O $ARCHIVE -nv $URL
+  wget -O $ARCHIVE -nv $URL
   cd /home/vagrant
   tar -xzf $ARCHIVE
   chown vagrant:vagrant geckodriver
@@ -258,7 +261,7 @@ EOF
 chmod +x /etc/X11/Xsession.d/9999-common_start
 #=========================================================
 echo -n 'Add host alias'
-echo '192.168.33.1 host'| sudo tee -a /etc/hosts
+echo '192.168.33.1 host'| tee -a /etc/hosts
 #=========================================================
 echo Reboot the VM
 sudo reboot
