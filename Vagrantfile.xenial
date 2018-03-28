@@ -157,6 +157,11 @@ then
       ;;
       *)
         apt-get remove -qqy -f google-chrome-stable
+	# TODO: fix trailing whitespace
+        apt-get -qqy install libxml2-utils
+	curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -ru | head -1 | awk '{print $1}')
+        echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
         cd /vagrant

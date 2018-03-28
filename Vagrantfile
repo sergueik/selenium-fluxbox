@@ -163,9 +163,18 @@ then
         apt-get install google-chrome-${CHROME_VERSION}
       ;;
       *)
+	wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
         apt-get remove -qqy -f google-chrome-stable
+        apt-get -qqy install libxml2-utils
         LATEST_CHROME_VERSION=$(curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -ru | head -1)
         echo latest Chrome version available on slimjet: $LATEST_CHROME_VERSION
+        # alternatively use xmllint:
+	# TODO: fix trailing whitespace
+	curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_|\\n|gp;' | sed 's|\\.deb"||' | sort -ru | head -1)
+        echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -ru | head -1 | awk '{print $1}')
+        echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
         cd /vagrant
