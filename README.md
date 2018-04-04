@@ -17,7 +17,7 @@ indicates a likely versions mismatch between Selenium, Geckodriver and Firefox, 
 
 Unfortunately this has been especially true with early Selenium __3.x__ releases.
 One often wishes to enforce specific past versions of Selenium-based toolchain.
-Vagrant makes this easy. 
+Vagrant makes this easy.
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
 
 Note: Docker makes this easy too, but there is no native Docker port for Windows 8.x and earlier and this could be one's reason to stay with Vagrant
@@ -29,7 +29,7 @@ was recently added - use at own risk.
 ### Usage
 
 Download the box images of Trusty [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64)
- or Xenial [vagrant-selenium](https://atlas.hashicorp.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box)
+ or Xenial [vagrant-selenium](https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box)
 locally, name it `trusty-server-amd64-vagrant-selenium.box` / `xenial-server-amd64-vagrant-selenium.box` and place inside the `~/Downloads` or `$env:USERPROFILE\Downloads`.
 
 Then run
@@ -84,6 +84,7 @@ you will have to switch to JDK 8 by setting the `USE_ORACLE_JAVA` environment to
 ```bash
 vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 ```
+this currently works with trusty but not wth xenial base box.
 
 ### Work in Progress
  * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
@@ -97,6 +98,7 @@ vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 
  * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) - this project allows the Java test suite to control (to a certain extent) the verson of the browserdriver for a selection of browsers.
  * [how to disable Chrome Browser auto update](https://stackoverflow.com/questions/18483087/how-to-disable-google-chrome-auto-update)
+ * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
 
-### Author
+ ### Author
 [Serguei Kouzmine](kouzmine_serguei@yahoo.com)

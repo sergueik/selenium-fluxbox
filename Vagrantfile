@@ -46,6 +46,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
   config.vm.network :forwarded_port, guest:4444, host:4444
   config.vm.network :private_network, ip: '192.168.33.10'
+  config.vm.boot_timeout = 600
   # Configure common synced folder
   config.vm.synced_folder './' , '/vagrant'
   config.vm.provision 'shell', inline: <<-END_OF_PROVISION
@@ -88,7 +89,7 @@ if [ ! -e '/tmp/.X0-lock' ] ; then
   echo -n Start X on login
   startx
 else
-  # X is alredy running..
+  echo X is alredy running..
 fi
 EOF
 #=========================================================
@@ -310,12 +311,13 @@ sudo reboot
   END_OF_PROVISION
   config.vm.provider :virtualbox do |v|
     v.gui = true
-    v.name = 'Selenium Fluxbox'
+    v.name = 'Selenium Fluxbox Trusty'
     v.customize ['modifyvm', :id, '--memory', box_memory ]
     v.customize ['modifyvm', :id, '--vram', '16']
     v.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
     v.customize ['setextradata', 'global', 'GUI/MaxGuestResolution', 'any']
     v.customize ['setextradata', :id, 'CustomVideoMode1', '1280x800x32']
-    # VBoxManage controlvm "Selenium Fluxbox" setvideomodehint 1280 800 32
+    v.customize ['modifyvm', :id, '--cableconnected1', 'on']
+    # VBoxManage controlvm 'Selenium Fluxbox Trusty' setvideomodehint 1280 800 32
   end
 end
