@@ -15,7 +15,7 @@ Likewise the Selenium hub error
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/session_error.png)
 indicates a likely versions mismatch between Selenium, Geckodriver and Firefox, or Selenium, ChromeDriver and Chrome.
 
-Unfortunately this has been especially true with early Selenium __3.x__ releases.
+This has been especially true with early Selenium __3.x__ releases.
 One often wishes to enforce specific past versions of Selenium-based toolchain.
 Vagrant makes this easy.
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
@@ -41,7 +41,8 @@ Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driv
 `SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`.
 
 
-Some supported combinations of legacy browser and driver versions are listed below:
+Some supported combinations of legacy browser and driver versions are listed below.
+Note: this list is provided as an example, and is not maintained.
 
 |                      |              |
 |----------------------|--------------|
@@ -96,6 +97,9 @@ this currently works with trusty but not wth xenial base box.
 
 ### See also:
 
+ * [Google Chrome Old Versions - for Windows only](https://google_chrome.en.downloadastro.com/old_versions/)
+ * [Selected old versions](https://google-chrome.en.uptodown.com/ubuntu/old)
+ * [Chromium old builds for Ubuntu](https://www.ubuntuupdates.org/pm/google-chrome-stable)
  * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) - this project allows the Java test suite to control (to a certain extent) the verson of the browserdriver for a selection of browsers.
  * [how to disable Chrome Browser auto update](https://stackoverflow.com/questions/18483087/how-to-disable-google-chrome-auto-update)
  * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
