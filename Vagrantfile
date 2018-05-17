@@ -3,12 +3,12 @@ selenium_version = ENV.fetch('SELENIUM_VERSION', '')
 chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '')
 firefox_version = ENV.fetch('FIREFOX_VERSION', '')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
-chrome_version = ENV.fetch('CHROME_VERSION', '')
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '66.0.3359.181',
   '65.0.3325.181',
   '64.0.3282.140',
   '63.0.3239.108',
@@ -28,7 +28,8 @@ available_chrome_versions = [
   '49.0.2623.75',
   '48.0.2564.109',
 ]
-
+# TODO: add mnemonicts as oldest => -1, newest => 0
+chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION shoukd be set to "stable", "unstable" "dev" or "beta"'
   puts "Alternatively, few specific old Chrome versions available :\n" + available_chrome_versions.join("\n")
