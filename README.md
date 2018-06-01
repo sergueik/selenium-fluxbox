@@ -28,7 +28,7 @@ was recently added - use at own risk.
 
 ### Usage
 
-Download the box images of Trusty [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64)
+Download the vagrant box images of Trusty [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64)
  or Xenial [vagrant-selenium](https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box)
 locally, name it `trusty-server-amd64-vagrant-selenium.box` / `xenial-server-amd64-vagrant-selenium.box` and place inside the `~/Downloads` or `$env:USERPROFILE\Downloads`.
 
@@ -41,7 +41,7 @@ Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driv
 `SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`.
 
 
-Some supported combinations of legacy browser and driver versions are listed below.
+Sampe supported combinations of legacy browser and driver versions are listed below.
 Note: this list is provided as an example, and is not maintained.
 
 |                      |              |
@@ -71,7 +71,10 @@ For Chrome, the `CHROME_VERSION` can also set to `stable`, `unstable` or `beta` 
 
 `Vagrantfile` automates the Chrome debian package download from
 [https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php).
-Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
+Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there. 
+
+Internaly the chromedriver communicates with Chrome browser via [WebSockets DevTools debugging interface](https://stackoverflow.com/questions/44244505/how-chromedriver-is-communicating-internally-with-the-browser?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
+
 Note that the actual download directory `http://www.slimjetbrowser.com/chrome/lnx/` is not directly browsable.
 Alternatively a handful of *really* old Chrome browser debian packages can be  manually downloaded from [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old). Note that these a
 
@@ -81,11 +84,11 @@ you will have to switch to JDK 8 by setting the `USE_ORACLE_JAVA` environment to
 ### Limitations
   * The hub is available on `http://127.0.0.1:4444/wd/hub/static/resource/hub.html` with some delay after the Virtual Box reboot - currently there is no visual cue on when the box is ready.
 
-  * If the screen resolution is too low, run on the host
+  * If the screen resolution is too low, run the following command on the host
 ```bash
 vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 ```
-this currently works with trusty but not wth xenial base box.
+this currently works with trusty but not always with xenial base box in Virtual Box.
 
 ### Work in Progress
  * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a

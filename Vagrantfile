@@ -8,6 +8,7 @@ debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '67.0.3396.62',
   '66.0.3359.181',
   '65.0.3325.181',
   '64.0.3282.140',
@@ -156,8 +157,9 @@ then
     beta|stable|unstable)
         # as of December 2017 the https://dl.google.com/linux/chrome/deb is occasionally 404 and this will fail (and fail to detect it did fail)
         # and the only way to install stable Chrome is to interactiely download it
+	# https://www.google.com/linuxrepositories/
         # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
-        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         # may need a second time for some reason sporadic error
         # GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
         apt-add-repository http://dl.google.com/linux/chrome/deb/

@@ -6,6 +6,7 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 # ensure the requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
+  '67.0.3396.62',
   '66.0.3359.181',
   '65.0.3325.181',
   '64.0.3282.140',
@@ -154,7 +155,8 @@ then
     apt-get -qqy install --only-upgrade libnss3
     case $CHROME_VERSION in
       beta|stable|unstable)
-        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        # https://www.google.com/linuxrepositories/
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
         apt-get install google-chrome-${CHROME_VERSION}
