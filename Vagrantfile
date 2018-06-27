@@ -8,7 +8,7 @@ debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
 available_chrome_versions = [
-  '67.0.3396.62',
+  '67.0.3396.79',
   '66.0.3359.181',
   '65.0.3325.181',
   '64.0.3282.140',
