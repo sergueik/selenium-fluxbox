@@ -99,17 +99,14 @@ fi
 EOF
 #=========================================================
 PROVISION_SELENIUM='#{provision_selenium}'
-if [[ $PROVISION_SELENIUM ]]
-then
+if [[ $PROVISION_SELENIUM ]] ; then
   echo Updating Selenium app stack
   FIREFOX_VERSION='#{firefox_version}'
-  if [[ $FIREFOX_VERSION ]]
-  then
+  if [[ $FIREFOX_VERSION ]] ; then
     echo Install Firefox version ${FIREFOX_VERSION}
     cd /vagrant
     PACKAGE_ARCHIVE="firefox-${FIREFOX_VERSION}.tar.bz2"
-    if [ ! -e $PACKAGE_ARCHIVE ]
-    then
+    if [ ! -e $PACKAGE_ARCHIVE ] ; then
       URL="https://ftp.mozilla.org/pub/firefox/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/${PACKAGE_ARCHIVE}"
       wget -O $PACKAGE_ARCHIVE -nv $URL
     else
@@ -125,8 +122,7 @@ then
   fi
   #=========================================================
   SELENIUM_VERSION='#{selenium_version}'
-  if [[ $SELENIUM_VERSION ]]
-  then
+  if [[ $SELENIUM_VERSION ]] ; then
     echo Download Selenium version $SELENIUM_VERSION
     SELENIUM_RELEASE=$(curl -# "https://selenium-release.storage.googleapis.com/" | sed -n "s/.*<Key>\\\\(${SELENIUM_VERSION}\\\\/selenium-server-standalone[^<][^>]*\\\\)<\\\\/Key>.*/\\\\1/p")
   else
@@ -136,8 +132,7 @@ then
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
-  if [ ! -e $PACKAGE_ARCHIVE ]
-  then
+  if [ ! -e $PACKAGE_ARCHIVE ] ; then
     URL="https://selenium-release.storage.googleapis.com/${SELENIUM_RELEASE}"
     echo Downloading Selenium $PACKAGE_ARCHIVE from $URL
     wget -O $PACKAGE_ARCHIVE -nv $URL
@@ -149,8 +144,7 @@ then
   chown vagrant:vagrant selenium-server-standalone.jar
   #=========================================================
   CHROME_VERSION='#{chrome_version}'
-  if [[ $CHROME_VERSION ]]
-  then
+  if [[ $CHROME_VERSION ]] ; then
     echo installing libnss3
     apt-get -qqy install --only-upgrade libnss3
     case $CHROME_VERSION in
@@ -163,10 +157,10 @@ then
       ;;
       *)
         apt-get remove -qqy -f google-chrome-stable
-	# TODO: fix trailing whitespace
+        # TODO: fix trailing whitespace
         apt-get -qqy install libxml2-utils
-	curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
-        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -ru | head -1 | awk '{print $1}')
+        curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -t.| head -1 | awk '{print $1}')
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
@@ -198,12 +192,16 @@ then
   fi
   #=========================================================
   CHROMEDRIVER_VERSION='#{chromedriver_version}'
-  if [[ $CHROMEDRIVER_VERSION ]]
-  then
-    echo Download Chrome Driver version $CHROMEDRIVER_VERSION
+  if [[ $CHROMEDRIVER_VERSION ]] ; then
+    echo "Download user specified version $CHROMEDRIVER_VERSION of Chromedriver"
   else
-    echo Download latest Chrome Driver
+    echo Download latest Chromedriver
     CHROMEDRIVER_VERSION=$(curl -# "http://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+    # alternatively
+    CHROMEDRIVER_VERSION=$(curl -k https://chromedriver.storage.googleapis.com/ | xmllint --xpath '//*[local-name()="Contents"]/*[local-name()="Key"]' - | sed 's/<\\/*Key>/\\n/g' | sed -n 's/\\([0-9]\\.[0-9][0-9]*\\)\\/chromedriver_linux64.zip/\\1/p' | sort -V -r | head -1)
+    # NOTE: the intermediate xmllint output in the above is not a valid XML
+    # NOTE:  alternatively
+    # | sort -t. -n -k1,1 -k2,2
   fi
   PACKAGE_ARCHIVE='chromedriver_linux64.zip'
   cd /vagrant
@@ -218,12 +216,14 @@ then
   echo Done
   #=========================================================
   GECKODRIVER_VERSION='#{geckodriver_version}'
-  if [[ $GECKODRIVER_VERSION ]]
-  then
-    echo Download the latest Gecko Driver version $GECKODRIVER_VERSION
+  if [[ $GECKODRIVER_VERSION ]] ; then
+    echo "Download the user specified version ${GECKODRIVER_VERSION} of Geckodriver."
   else
-    echo Determine the latest version of Gecko Driver
+    echo Determine the latest version of Geckodriver
     GECKODRIVER_VERSION=$(curl -insecure -L -# https://github.com/mozilla/geckodriver/releases | sed -n 's/.*<a href="\\/mozilla\\/geckodriver\\/releases\\/download\\/v\\([0-9.][0-9.]*\\)\\/geckodriver-.*-linux64.*/\\1/p' | head -1)
+    # alternatively
+    GECKO_RELEASE_URL='https://api.github.com/repos/mozilla/geckodriver/releases'
+    GECKODRIVER_VERSION=$(curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | sed 's/^v//'| sort -V -r | head -1)
   fi
   URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'

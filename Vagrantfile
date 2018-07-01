@@ -97,17 +97,14 @@ fi
 EOF
 #=========================================================
 PROVISION_SELENIUM='#{provision_selenium}'
-if [[ $PROVISION_SELENIUM ]]
-then
+if [[ $PROVISION_SELENIUM ]] ; then
   echo Updating Selenium app stack
   FIREFOX_VERSION='#{firefox_version}'
-  if [[ $FIREFOX_VERSION ]]
-  then
+  if [[ $FIREFOX_VERSION ]] ; then
     echo Install Firefox version ${FIREFOX_VERSION}
     cd /vagrant
     PACKAGE_ARCHIVE="firefox-${FIREFOX_VERSION}.tar.bz2"
-    if [ ! -e $PACKAGE_ARCHIVE ]
-    then
+    if [ ! -e $PACKAGE_ARCHIVE ] ; then
       URL="https://ftp.mozilla.org/pub/firefox/releases/${FIREFOX_VERSION}/linux-x86_64/en-US/${PACKAGE_ARCHIVE}"
       wget -O $PACKAGE_ARCHIVE -nv $URL
     else
@@ -123,8 +120,7 @@ then
   fi
   #=========================================================
   SELENIUM_VERSION='#{selenium_version}'
-  if [[ $SELENIUM_VERSION ]]
-  then
+  if [[ $SELENIUM_VERSION ]] ; then
     echo Download Selenium version $SELENIUM_VERSION
     SELENIUM_RELEASE=$(curl -# "https://selenium-release.storage.googleapis.com/" | sed -n "s/.*<Key>\\\\(${SELENIUM_VERSION}\\\\/selenium-server-standalone[^<][^>]*\\\\)<\\\\/Key>.*/\\\\1/p")
   else
@@ -134,8 +130,7 @@ then
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
-  if [ ! -e $PACKAGE_ARCHIVE ]
-  then
+  if [ ! -e $PACKAGE_ARCHIVE ] ; then
     URL="https://selenium-release.storage.googleapis.com/${SELENIUM_RELEASE}"
     echo Downloading Selenium $PACKAGE_ARCHIVE from $URL
     wget -O $PACKAGE_ARCHIVE -nv $URL
@@ -147,8 +142,7 @@ then
   chown vagrant:vagrant selenium-server-standalone.jar
   #=========================================================
   CHROME_VERSION='#{chrome_version}'
-  if [[ $CHROME_VERSION ]]
-  then
+  if [[ $CHROME_VERSION ]]; then
     echo installing libnss3
     # https://stackoverflow.com/questions/46126902/fix-nss-version-not-match-when-update-chrome-in-ubuntu
     # for trusty need the following command may get the correct version of libnss3, which is a prerequisite of Chrome 64+
@@ -158,7 +152,7 @@ then
     beta|stable|unstable)
         # as of December 2017 the https://dl.google.com/linux/chrome/deb is occasionally 404 and this will fail (and fail to detect it did fail)
         # and the only way to install stable Chrome is to interactiely download it
-	# https://www.google.com/linuxrepositories/
+        # https://www.google.com/linuxrepositories/
         # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         # may need a second time for some reason sporadic error
@@ -168,14 +162,14 @@ then
         apt-get install google-chrome-${CHROME_VERSION}
       ;;
       *)
-	wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
         apt-get remove -qqy -f google-chrome-stable
         apt-get -qqy install libxml2-utils
-        LATEST_CHROME_VERSION=$(curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -ru | head -1)
+        LATEST_CHROME_VERSION=$(curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -r -u -n -k1,1 -k2,2 -t.| head -1)
         echo latest Chrome version available on slimjet: $LATEST_CHROME_VERSION
-        # alternatively use xmllint:
-	# TODO: fix trailing whitespace
-	curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
+        # Alternatively use xmllint
+        # TODO: fix trailing whitespace
+        curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
         LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_|\\n|gp;' | sed 's|\\.deb"||' | sort -ru | head -1)
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -ru | head -1 | awk '{print $1}')
@@ -184,8 +178,7 @@ then
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
         cd /vagrant
         PACKAGE_ARCHIVE="chrome64_${CHROME_VERSION}.deb"
-        if [ ! -e $PACKAGE_ARCHIVE ]
-        then
+        if [ ! -e $PACKAGE_ARCHIVE ] ; then
           echo Downloading Chrome from $URL
           wget -nv $URL
         else
@@ -210,12 +203,14 @@ then
   fi
   #=========================================================
   CHROMEDRIVER_VERSION='#{chromedriver_version}'
-  if [[ $CHROMEDRIVER_VERSION ]]
-  then
-    echo Download Chrome Driver version $CHROMEDRIVER_VERSION
+  if [[ $CHROMEDRIVER_VERSION ]] ; then
+    echo "Download user specified version $CHROMEDRIVER_VERSION of Chromedriver"
   else
-    echo Download latest Chrome Driver
+    echo Download latest Chromedriver
     CHROMEDRIVER_VERSION=$(curl -# "http://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+    # alternartively
+    CHROMEDRIVER_VERSION=$(curl -k https://chromedriver.storage.googleapis.com/ | xmllint --xpath '//*[local-name()="Contents"]/*[local-name()="Key"]' - | sed 's/<\\/*Key>/\\n/g' | sed -n 's/\\([0-9]\\.[0-9][0-9]*\\)\\/chromedriver_linux64.zip/\\1/p' | sort -V -r | head -1)
+    # NOTE: the intermediate xmllint output in the above is not a valid XML
   fi
   PACKAGE_ARCHIVE='chromedriver_linux64.zip'
   cd /vagrant
@@ -232,12 +227,14 @@ then
   echo Done
   #=========================================================
   GECKODRIVER_VERSION='#{geckodriver_version}'
-  if [[ $GECKODRIVER_VERSION ]]
-  then
-    echo Download the latest Gecko Driver version $GECKODRIVER_VERSION
+  if [[ $GECKODRIVER_VERSION ]] ; then
+    echo "Download the user specified version ${GECKODRIVER_VERSION} of Geckodriver."
   else
-    echo Determine the latest version of Gecko Driver
+    echo Determine the latest version of Geckodriver
     GECKODRIVER_VERSION=$(curl -insecure -L -# https://github.com/mozilla/geckodriver/releases | sed -n 's/.*<a href="\\/mozilla\\/geckodriver\\/releases\\/download\\/v\\([0-9.][0-9.]*\\)\\/geckodriver-.*-linux64.*/\\1/p' | head -1)
+    # alternatively
+    GECKO_RELEASE_URL='https://api.github.com/repos/mozilla/geckodriver/releases'
+    GECKODRIVER_VERSION=$(curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -n | head-1)  fi
   fi
   URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
@@ -250,12 +247,11 @@ then
   # TODO: geckodriver ERROR Address in use (os error 98)
   #=========================================================
   USE_ORACLE_JAVA='#{use_oracle_java}'
-  if [[ $USE_ORACLE_JAVA ]]
-  then
+  if [[ $USE_ORACLE_JAVA ]] ; then
     echo Downloading Oracle JDK
     # https://www.digitalocean.com/community/tutorials/how-to-manually-install-oracle-java-on-a-debian-or-ubuntu-vps
     pushd /vagrant
-    PACKAGE_ARCHIVE=jdk-linux-x64.tar.gz
+    PACKAGE_ARCHIVE='jdk-linux-x64.tar.gz'
     # need to accept the license interactively in http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html to browse
     URL="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.tar.gz"
     wget -O $PACKAGE_ARCHIVE --header "Cookie: oraclelicense=accept-securebackup-cookie" -nv $URL
