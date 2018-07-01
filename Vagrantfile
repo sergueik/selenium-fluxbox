@@ -7,33 +7,33 @@ use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
-available_chrome_versions = [
-  '67.0.3396.62',
-  '66.0.3359.181',
-  '65.0.3325.181',
-  '64.0.3282.140',
-  '63.0.3239.108',
-  '62.0.3202.75',
-  '61.0.3163.79',
-  '60.0.3112.90',
-  '59.0.3071.86',
-  '58.0.3029.96',
-  '57.0.2987.133',
-  '56.0.2924.87',
-  '55.0.2883.75',
-  '54.0.2840.71',
-  '53.0.2785.116',
-  '52.0.2743.116',
-  '51.0.2704.84',
-  '50.0.2661.75',
-  '49.0.2623.75',
-  '48.0.2564.109',
-]
+available_chrome_versions = %w|
+  67.0.3396.79
+  66.0.3359.181
+  65.0.3325.181
+  64.0.3282.140
+  63.0.3239.108
+  62.0.3202.75
+  61.0.3163.79
+  60.0.3112.90
+  59.0.3071.86
+  58.0.3029.96
+  57.0.2987.133
+  56.0.2924.87
+  55.0.2883.75
+  54.0.2840.71
+  53.0.2785.116
+  52.0.2743.116
+  51.0.2704.84
+  50.0.2661.75
+  49.0.2623.75
+  48.0.2564.109
+|
 # TODO: add mnemonicts as oldest => -1, newest => 0
 chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
-  puts 'CHROME_VERSION shoukd be set to "stable", "unstable" "dev" or "beta"'
-  puts "Alternatively, few specific old Chrome versions available :\n" + available_chrome_versions.join("\n")
+  puts 'CHROME_VERSION should be set to "stable", "unstable" "dev" or "beta"'
+  puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php:\n" + available_chrome_versions.join("\n")
   exit
 end
 
@@ -43,7 +43,8 @@ box_memory = ENV.fetch('BOX_MEMORY', '2048').to_i
 basedir = basedir.gsub('\\', '/')
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = 'ubuntu/trusty64'
-  # Localy cached vagrant box images from http://www.vagrantbox.es/ and  http://dev.modern.ie/tools/vms/linux/
+  # Localy cached vagrant box image from https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/14.04/providers/virtualbox.box
+  # see also http://www.vagrantbox.es/ and http://dev.modern.ie/tools/vms/linux/
   config_vm_box_name = 'trusty-server-amd64-vagrant-selenium.box'
   config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
   config.vm.network :forwarded_port, guest:4444, host:4444
@@ -61,7 +62,7 @@ fi
 #=========================================================
 echo Install the packages
 apt-get -qq update
-apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget jq 
+apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget jq
 #=========================================================
 echo Install the OpenJDK 8 backport for trusty
 if false ; then
@@ -72,10 +73,10 @@ if false ; then
   apt-get -qqy install oracle-java8-installer
   apt-get -qqy install oracle-java8-set-default
   # when installing from downloaded archive will also need
-  # update-alternatives --install /ust/bin/java /usr/lib/jvm/jdk-1.8.0_161/bin/java java 0 
+  # update-alternatives --install /ust/bin/java /usr/lib/jvm/jdk-1.8.0_161/bin/java java 0
   # update-alternatives --set java /usr/lib/jvm/jdk-1.8.0_161/bin/java
   # update-alternatives --set javac /usr/lib/jvm/jdk-1.8.0_161/bin/javac
-  
+
 fi
 add-apt-repository -y ppa:openjdk-r/ppa
 apt-get -qqy update
@@ -265,7 +266,7 @@ then
     update-alternatives --install /usr/bin/javac javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac 100
     update-alternatives --set javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac
     popd
-  fi  
+  fi
 fi
 #=========================================================
 echo Set screen resolution
