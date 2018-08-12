@@ -1,9 +1,19 @@
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
+
+
 selenium_version = ENV.fetch('SELENIUM_VERSION', '')
+
+# experimental
+provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
+# NOTE: not needed for this specific base box.
+provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
+
 chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '')
 firefox_version = ENV.fetch('FIREFOX_VERSION', '')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
+
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
+
 debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
@@ -61,7 +71,9 @@ set -x
 fi
 
 #=========================================================
-echo Install the packages
+echo 'Install the packages'
+# NOTE:  GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
+# Failed to fetch http://dl.google.com/linux/chrome/deb/dists/stable/Release
 apt-get -qq update
 apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget jq
 #=========================================================
@@ -265,6 +277,91 @@ if [[ $PROVISION_SELENIUM ]] ; then
     popd
   fi
 fi
+PROVISION_KATALON='#{provision_katalon}'
+if [[ $PROVISION_KATALON ]] ; then
+  # based on scripts in https://github.com/katalon-studio/docker-images
+  pushd /vagrant
+
+  KATALON_INSTALL_DIR_PARENT='/opt'
+  KATALON_INSTALL_DIR_PARENT='/vagrant'
+  # NOTE: the arhive is broken: 
+  # file Katalon_Studio_Linux_64-5.5.tar.gz
+  # Katalon_Studio_Linux_64-5.5.tar.gz: dat
+  KATALON_VERSION_FULL='5.5.0'
+  KATALON_VERSION='5.5'
+  KATALON_VERSION_FULL='5.6.0'
+  KATALON_VERSION='5.6.0'
+  # NOTE:
+  # <Error>
+  # <Code>NoSuchKey</Code>
+  # <Message>The specified key does not exist.</Message>
+  # <Key>5.6.0/Katalon_Studio_Linux_64-5.6.tar.gz</Key>
+  # <RequestId>52F0E5B631769126</RequestId>
+  # <HostId>
+  # dXza7X39zbPNaVMpOtWF+GnYUCV32w6NZldVb9Q0cBRSH/AePC67y/jY+y2k0+gFCK4p7b7a9EU=
+  # </HostId>
+  # </Error>
+  # http://download.katalon.com/5.6.0/Katalon_Studio_Linux_64-5.6.tar.gz
+  # To always get latest,
+  # sign-in
+  # https://www.katalon.com/sign-in/
+  # https://backend.katalon.com/download?platform=linux_64&id=kouzmine_serguei%40yahoo.com
+  # <input type="email" name="user_email" id="user_email" value="" placeholder="Email" required="" autofocus="">
+  # <input type="password" name="user_pass" id="user_pass" value="" placeholder="Password" data-errormsg="Please choose a password with a minimum of 6 characters" required="">
+  # <input style="width: auto; margin: 7px 10px 0 0;" type="checkbox" id="remember" name="remember" checked="checked">
+  # <input class="sign-in" type="submit" id="login-btn" data-loading-text="Sign in" value="Sign in">
+  # sign out
+  # <a class="page-scroll button-change-hash" href="https://www.katalon.com/wp-login.php?action=logout&amp;redirect_to=https%3A%2F%2Fwww.katalon.com&amp;_wpnonce=469eba9ba4" title="Sign out">Sign out</a>
+
+  if [[ $KATALON_VERSION ]] ; then
+
+    PLATFORM='Linux_64'
+    # possible platform options: linux32, linux64, mac64, win32
+    PACKAGE_ARCHIVE="Katalon_Studio_${PLATFORM}-${KATALON_VERSION}.tar.gz"
+    KATALON_HOME_DIRECTORY="Katalon_Studio_${PLATFORM}-${KATALON_VERSION}"
+    KATALON_INSTALL_DIR="${KATALON_INSTALL_DIR_PARENT}/katalonstudio"
+    if [ ! -e $PACKAGE_ARCHIVE ]; then
+      echo 'Download Katalon'
+      DOWNLOAD_URL="http://download.katalon.com/${KATALON_VERSION_FULL}/${PACKAGE_ARCHIVE}"
+      wget -O $PACKAGE_ARCHIVE -nv $DOWNLOAD_URL
+      # curl -insecure -L -o $PACKAGE_ARCHIVE -k $DOWNLOAD_URL
+    else
+      echo 'Katalon is already downloaded.'
+    fi
+    echo 'Install Katalon'
+    
+    tar -xvzf $PACKAGE_ARCHIVE -C $KATALON_INSTALL_DIR_PARENT
+    # still bad download
+    # ls
+    # rm -f $PACKAGE_ARCHIVE
+
+    mv $KATALON_INSTALL_DIR_PARENT/$KATALON_HOME_DIRECTORY $KATALON_INSTALL_DIR
+    chmod u+x $KATALON_INSTALL_DIR/katalon
+    # TODO: replace with link to the actual driver
+    chmod u+x $KATALON_INSTALL_DIR/configuration/resources/drivers/chromedriver_linux64/chromedriver
+    KATALON_KATALON_VERSION_FILE='/katalon/KATALON_VERSION'
+    echo "Katalon Studio $KATALON_VERSION" >> $KATALON_KATALON_VERSION_FILE
+    find $KATALON_INSTALL_DIR -name '*.sh' -exec chmod a+x {} \\;
+  fi
+  # based on: https://github.com/katalon-studio/docker-images/blob/master/katalon/src/scripts/katalon-execute.sh
+  
+  # KATALON_OPTS='-browserType="Chrome" -retry=0 -statusDelay=15 -testSuitePath="Test Suites/TS_RegressionTest" --config -proxy.option=MANUAL_CONFIG -proxy.server.type=HTTP -proxy.server.address=192.168.1.221 -proxy.server.port=8888' 
+  # $KATALON_INSTALL_DIR/katalon -runMode=console -reportFolder=$report_dir -projectPath=$project_file $KATALON_OPTS"
+  popd
+fi
+
+PROVISION_VNC='#{provision_vnc}'
+if [[ $PROVISION_VNC ]] ; then
+  echo 'Install TigerVNC'
+
+  PACKAGE_DEB=tigervncserver_1.6.0-3ubuntu1_amd64.deb
+  DOWNLOAD_URL="https://bintray.com/artifact/download/tigervnc/stable/ubuntu-16.04LTS/amd64/tigervncserver_1.8.0-1ubuntu1_amd64.deb"
+  curl -insecure -L -o $PACKAGE_DEB -k $DOWNLOAD_URL
+  # wget -O $PACKAGE_DEB $DOWNLOAD_URL
+  dpkg -qi $PACKAGE_DEB || apt -qqy -f install
+  rm -f $PACKAGE_DEB
+fi
+
 #=========================================================
 echo Set screen resolution
 cat <<EOF>> /home/vagrant/.fluxbox/startup
