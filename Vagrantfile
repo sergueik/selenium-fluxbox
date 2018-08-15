@@ -1,19 +1,24 @@
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 
-
 selenium_version = ENV.fetch('SELENIUM_VERSION', '')
-
-# experimental
-provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
-# NOTE: not needed for this specific base box.
-provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
-
 chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '')
 firefox_version = ENV.fetch('FIREFOX_VERSION', '')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
+# experimental
+provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
+# NOTE: not needed for this specific base box.
+provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
+
+# https://github.com/hashicorp/vagrant/issues/936
+# config.vm.provision :shell do |shell|
+#   shell.inline = "sudo mount -t vboxsf -o uid=`id -u apache`,gid=`id -g apache` test /test"
+# end
+# describe file('/vagrant') do
+#  it { should be_mounted.with( :type => 'vboxsf' ) }
+# end
 debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
@@ -283,8 +288,9 @@ if [[ $PROVISION_KATALON ]] ; then
   pushd /vagrant
 
   KATALON_INSTALL_DIR_PARENT='/opt'
-  KATALON_INSTALL_DIR_PARENT='/vagrant'
-  # NOTE: the arhive is broken: 
+  # the /vagrant will be unmounted during the reboot
+  # KATALON_INSTALL_DIR_PARENT='/vagrant'
+  # NOTE: the arhive is broken:
   # file Katalon_Studio_Linux_64-5.5.tar.gz
   # Katalon_Studio_Linux_64-5.5.tar.gz: dat
   KATALON_VERSION_FULL='5.5.0'
@@ -315,8 +321,9 @@ if [[ $PROVISION_KATALON ]] ; then
 
   if [[ $KATALON_VERSION ]] ; then
 
+    # NOTE: 5.5, 5.6.0 - still bad download, use manually downloaded cached copy to workaround
     PLATFORM='Linux_64'
-    # possible platform options: linux32, linux64, mac64, win32
+    # possible platform options: Linux_32, Linux_64, mac64, win32
     PACKAGE_ARCHIVE="Katalon_Studio_${PLATFORM}-${KATALON_VERSION}.tar.gz"
     KATALON_HOME_DIRECTORY="Katalon_Studio_${PLATFORM}-${KATALON_VERSION}"
     KATALON_INSTALL_DIR="${KATALON_INSTALL_DIR_PARENT}/katalonstudio"
@@ -324,18 +331,21 @@ if [[ $PROVISION_KATALON ]] ; then
       echo 'Download Katalon'
       DOWNLOAD_URL="http://download.katalon.com/${KATALON_VERSION_FULL}/${PACKAGE_ARCHIVE}"
       wget -O $PACKAGE_ARCHIVE -nv $DOWNLOAD_URL
+      # alternatively
       # curl -insecure -L -o $PACKAGE_ARCHIVE -k $DOWNLOAD_URL
     else
       echo 'Katalon is already downloaded.'
     fi
     echo 'Install Katalon'
-    
-    tar -xvzf $PACKAGE_ARCHIVE -C $KATALON_INSTALL_DIR_PARENT
-    # still bad download
-    # ls
-    # rm -f $PACKAGE_ARCHIVE
 
-    mv $KATALON_INSTALL_DIR_PARENT/$KATALON_HOME_DIRECTORY $KATALON_INSTALL_DIR
+    tar -zxsf $PACKAGE_ARCHIVE -C $KATALON_INSTALL_DIR_PARENT
+    if [[ -d $KATALON_INSTALL_DIR ]] ; then
+      mv $KATALON_INSTALL_DIR "${KATALON_INSTALL_DIR}.BAK"
+    fi
+
+    if [[ ! -d $KATALON_INSTALL_DIR ]] ; then
+      mv $KATALON_INSTALL_DIR_PARENT/$KATALON_HOME_DIRECTORY $KATALON_INSTALL_DIR
+    fi
     chmod u+x $KATALON_INSTALL_DIR/katalon
     # TODO: replace with link to the actual driver
     chmod u+x $KATALON_INSTALL_DIR/configuration/resources/drivers/chromedriver_linux64/chromedriver
@@ -344,9 +354,31 @@ if [[ $PROVISION_KATALON ]] ; then
     find $KATALON_INSTALL_DIR -name '*.sh' -exec chmod a+x {} \\;
   fi
   # based on: https://github.com/katalon-studio/docker-images/blob/master/katalon/src/scripts/katalon-execute.sh
-  
-  # KATALON_OPTS='-browserType="Chrome" -retry=0 -statusDelay=15 -testSuitePath="Test Suites/TS_RegressionTest" --config -proxy.option=MANUAL_CONFIG -proxy.server.type=HTTP -proxy.server.address=192.168.1.221 -proxy.server.port=8888' 
-  # $KATALON_INSTALL_DIR/katalon -runMode=console -reportFolder=$report_dir -projectPath=$project_file $KATALON_OPTS"
+
+  # replace the drivers:
+
+  if [[ -f '/home/vagrant/chromedriver' ]] ; then
+    EMBEDDED_DRIVER=$KATALON_INSTALL_DIR/configuration/resources/drivers/chromedriver_linux64/chromedriver
+    pushd $(dirname $EMBEDDED_DRIVER)
+    rm -f $EMBEDDED_DRIVER
+    ln -s /home/vagrant/geckodriver
+    popd
+  fi
+  if [[ -f '/home/vagrant/geckodriver' ]] ; then
+    EMBEDDED_DRIVER=$KATALON_INSTALL_DIR/configuration/resources/drivers/firefox_linux64/geckodriver
+    # pushd $(dirname $EMBEDDED_DRIVER)
+    rm -f $EMBEDDED_DRIVER
+    # ln -s /home/vagrant/geckodriver
+    # popd
+    ln -s -T /home/vagrant/geckodriver $EMBEDDED_DRIVER
+    # failed to create symbolic link ‘/opt/katalonstudio/katalonstudio/configuration/resources/drivers/chromedriver_linux64/chromedriver’
+    # : No such file or directory
+  fi
+
+  REPORT_FOLDER='/vagrant/reports'
+  PROJECT_FILE='/vagrant/project.proj'
+  KATALON_OPTS="-browserType='Chrome' -retry=0 -statusDelay=15 -testSuitePath='/vagrant/Test Suites/TS_RegressionTest'"
+  $KATALON_INSTALL_DIR/katalon -runMode=console -reportFolder=$REPORT_FOLDER -projectPath=$PROJECT_FILE $KATALON_OPTS
   popd
 fi
 
