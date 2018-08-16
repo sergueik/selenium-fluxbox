@@ -12,13 +12,6 @@ provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 
-# https://github.com/hashicorp/vagrant/issues/936
-# config.vm.provision :shell do |shell|
-#   shell.inline = "sudo mount -t vboxsf -o uid=`id -u apache`,gid=`id -g apache` test /test"
-# end
-# describe file('/vagrant') do
-#  it { should be_mounted.with( :type => 'vboxsf' ) }
-# end
 debug = ENV.fetch('DEBUG', '')
 
 # check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
@@ -140,9 +133,11 @@ if [[ $PROVISION_SELENIUM ]] ; then
   SELENIUM_VERSION='#{selenium_version}'
   if [[ $SELENIUM_VERSION ]] ; then
     echo Download Selenium version $SELENIUM_VERSION
+    # curl -# "https://selenium-release.storage.googleapis.com/" | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" --format --nowrap -
     SELENIUM_RELEASE=$(curl -# "https://selenium-release.storage.googleapis.com/" | sed -n "s/.*<Key>\\\\(${SELENIUM_VERSION}\\\\/selenium-server-standalone[^<][^>]*\\\\)<\\\\/Key>.*/\\\\1/p")
   else
     echo Download latest Selenium Server
+    # TODO: use xmllint instead of sed. The latest version is processed incorrectly
     SELENIUM_RELEASE=$(curl -# https://selenium-release.storage.googleapis.com/ | sed -n 's/.*<Key>\\([^>][^>]*selenium-server-standalone[^<][^<]*\\)<\\/Key>.*/\\1/p')
     SELENIUM_VERSION=$(echo $SELENIUM_RELEASE | sed -n 's/.*selenium-server-standalone-\\([0-9][0-9.]*\\).jar/\\1/p')
   fi
