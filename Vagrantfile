@@ -73,7 +73,7 @@ echo 'Install the packages'
 # NOTE:  GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
 # Failed to fetch http://dl.google.com/linux/chrome/deb/dists/stable/Release
 apt-get -qq update
-apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget jq
+apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget libxml2-utils jq
 #=========================================================
 echo Install the OpenJDK 8 backport for trusty
 if false ; then
@@ -131,15 +131,31 @@ if [[ $PROVISION_SELENIUM ]] ; then
   fi
   #=========================================================
   SELENIUM_VERSION='#{selenium_version}'
+  SELENIM_RELEASE_URL='https://selenium-release.storage.googleapis.com/'
   if [[ $SELENIUM_VERSION ]] ; then
     echo Download Selenium version $SELENIUM_VERSION
-    # curl -# "https://selenium-release.storage.googleapis.com/" | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" --format --nowrap -
-    SELENIUM_RELEASE=$(curl -# "https://selenium-release.storage.googleapis.com/" | sed -n "s/.*<Key>\\\\(${SELENIUM_VERSION}\\\\/selenium-server-standalone[^<][^>]*\\\\)<\\\\/Key>.*/\\\\1/p")
+    # NOTE: When used from the command line, the xmllint tool doesn't accept namespaces in xpath expressions.
+    # see also: https://gist.github.com/bitsgalore/3e403b02f776f03444c0622cb3b08b56
+    # curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" --format --nowrap -
+    # altermatively
+    # xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]" --shell - <<< $(curl -# $SELENIM_RELEASE_URL ) | sed -e 's|</*Key>|\\n|pg' | awk -F / '{print $1, $0 }' | sort -r -u -n -k1,1 -k2,2 -t.| head -1
+    # NOTE: --shell option leads to an extra trailing '/ > ' in the output like
+    # xmllint --xlenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" --shell - <<< $(curl -# "https://selenium-release.storage.googleapis.com/")
+    # '3.11/selenium-server-standalone-3.11.0.jar/ >'
+    # see also https://stackoverflow.com/questions/17965071/get-xmllint-to-output-xpath-results-n-separated-for-attribute-selector
+    SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | sed -n "s/.*<Key>\\\\(${SELENIUM_VERSION}\\\\/selenium-server-standalone[^<][^>]*\\\\)<\\\\/Key>.*/\\\\1/p")
+    SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
+    echo "Selenium release: ${SELENIUM_RELEASE}"
   else
     echo Download latest Selenium Server
+    echo Determine the latest Selenium Server version
     # TODO: use xmllint instead of sed. The latest version is processed incorrectly
-    SELENIUM_RELEASE=$(curl -# https://selenium-release.storage.googleapis.com/ | sed -n 's/.*<Key>\\([^>][^>]*selenium-server-standalone[^<][^<]*\\)<\\/Key>.*/\\1/p')
-    SELENIUM_VERSION=$(echo $SELENIUM_RELEASE | sed -n 's/.*selenium-server-standalone-\\([0-9][0-9.]*\\).jar/\\1/p')
+    # xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - <<< $(curl -# $SELENIM_RELEASE_URL ) | sed -e 's|</*Key>|\\n|pg' | awk -F / '{print $1, $0 }' | sort -r -u -n -k1,1 -k2,2 -t.| head -1
+    # SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | sed -n 's/.*<Key>\\([^>][^>]*selenium-server-standalone[^<][^<]*\\)<\\/Key>.*/\\1/p')
+    # SELENIUM_VERSION=$(echo $SELENIUM_RELEASE | sed -n 's/.*selenium-server-standalone-\\([0-9][0-9.]*\\).jar/\\1/p')
+    # 
+    SELENIUM_VERSION=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -t. | head -1 )
+    echo "SELENIUM_VERSION=${SELENIUM_VERSION}" 
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
