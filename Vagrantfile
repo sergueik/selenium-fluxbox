@@ -143,7 +143,8 @@ if [[ $PROVISION_SELENIUM ]] ; then
     fi
   else
     echo Download latest Selenium Server
-    SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -t. | head -1 )
+    # use sort field, tab options to build the equivalent of $VERSION_MAJOR*10000 + $VERSION_MINOR *10 + $VERSION_BUILD
+    SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -k3,3 -t. | head -1 )
     echo "The latest Selenium Server version is ${SELENIUM_VERSION}" 
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
@@ -183,7 +184,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
         apt-get remove -qqy -f google-chrome-stable
         apt-get -qqy install libxml2-utils
-        LATEST_CHROME_VERSION=$(curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -r -u -n -k1,1 -k2,2 -t.| head -1)
+        LATEST_CHROME_VERSION=$(curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1)
         echo latest Chrome version available on slimjet: $LATEST_CHROME_VERSION
         # Alternatively use xmllint
         # TODO: fix trailing whitespace

@@ -134,7 +134,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
     fi
   else
     echo Download latest Selenium Server
-    SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -t. | head -1 )
+    SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -k3,3 -t. | head -1 )
     echo "The latest Selenium Server version is ${SELENIUM_VERSION}" 
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
@@ -167,7 +167,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
         # TODO: fix trailing whitespace
         apt-get -qqy install libxml2-utils
         curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
-        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -t.| head -1 | awk '{print $1}')
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1 | awk '{print $1}')
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
