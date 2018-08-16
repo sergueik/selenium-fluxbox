@@ -134,28 +134,17 @@ if [[ $PROVISION_SELENIUM ]] ; then
   SELENIM_RELEASE_URL='https://selenium-release.storage.googleapis.com/'
   if [[ $SELENIUM_VERSION ]] ; then
     echo Download Selenium version $SELENIUM_VERSION
-    # NOTE: When used from the command line, the xmllint tool doesn't accept namespaces in xpath expressions.
-    # see also: https://gist.github.com/bitsgalore/3e403b02f776f03444c0622cb3b08b56
-    # curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" --format --nowrap -
-    # altermatively
-    # xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]" --shell - <<< $(curl -# $SELENIM_RELEASE_URL ) | sed -e 's|</*Key>|\\n|pg' | awk -F / '{print $1, $0 }' | sort -r -u -n -k1,1 -k2,2 -t.| head -1
-    # NOTE: --shell option leads to an extra trailing '/ > ' in the output like
-    # xmllint --xlenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" --shell - <<< $(curl -# "https://selenium-release.storage.googleapis.com/")
-    # '3.11/selenium-server-standalone-3.11.0.jar/ >'
-    # see also https://stackoverflow.com/questions/17965071/get-xmllint-to-output-xpath-results-n-separated-for-attribute-selector
-    SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | sed -n "s/.*<Key>\\\\(${SELENIUM_VERSION}\\\\/selenium-server-standalone[^<][^>]*\\\\)<\\\\/Key>.*/\\\\1/p")
-    SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
-    echo "Selenium release: ${SELENIUM_RELEASE}"
+    SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
+    if [ -z $SELENIUM_RELEASE ] ; then
+      echo Invalid version
+      exit 1
+    else
+      echo "Selenium release: ${SELENIUM_RELEASE}"
+    fi
   else
     echo Download latest Selenium Server
-    echo Determine the latest Selenium Server version
-    # TODO: use xmllint instead of sed. The latest version is processed incorrectly
-    # xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - <<< $(curl -# $SELENIM_RELEASE_URL ) | sed -e 's|</*Key>|\\n|pg' | awk -F / '{print $1, $0 }' | sort -r -u -n -k1,1 -k2,2 -t.| head -1
-    # SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | sed -n 's/.*<Key>\\([^>][^>]*selenium-server-standalone[^<][^<]*\\)<\\/Key>.*/\\1/p')
-    # SELENIUM_VERSION=$(echo $SELENIUM_RELEASE | sed -n 's/.*selenium-server-standalone-\\([0-9][0-9.]*\\).jar/\\1/p')
-    # 
-    SELENIUM_VERSION=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -t. | head -1 )
-    echo "SELENIUM_VERSION=${SELENIUM_VERSION}" 
+    SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -t. | head -1 )
+    echo "The latest Selenium Server version is ${SELENIUM_VERSION}" 
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
@@ -194,11 +183,11 @@ if [[ $PROVISION_SELENIUM ]] ; then
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
         apt-get remove -qqy -f google-chrome-stable
         apt-get -qqy install libxml2-utils
-        LATEST_CHROME_VERSION=$(curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -r -u -n -k1,1 -k2,2 -t.| head -1)
+        LATEST_CHROME_VERSION=$(curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -r -u -n -k1,1 -k2,2 -t.| head -1)
         echo latest Chrome version available on slimjet: $LATEST_CHROME_VERSION
         # Alternatively use xmllint
         # TODO: fix trailing whitespace
-        curl -# https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
+        curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
         LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_|\\n|gp;' | sed 's|\\.deb"||' | sort -ru | head -1)
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -ru | head -1 | awk '{print $1}')
@@ -236,9 +225,9 @@ if [[ $PROVISION_SELENIUM ]] ; then
     echo "Download user specified version $CHROMEDRIVER_VERSION of Chromedriver"
   else
     echo Download latest Chromedriver
-    CHROMEDRIVER_VERSION=$(curl -# "http://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+    CHROMEDRIVER_VERSION=$(curl -s "http://chromedriver.storage.googleapis.com/LATEST_RELEASE")
     # alternartively
-    CHROMEDRIVER_VERSION=$(curl -k https://chromedriver.storage.googleapis.com/ | xmllint --xpath '//*[local-name()="Contents"]/*[local-name()="Key"]' - | sed 's/<\\/*Key>/\\n/g' | sed -n 's/\\([0-9]\\.[0-9][0-9]*\\)\\/chromedriver_linux64.zip/\\1/p' | sort -V -r | head -1)
+    CHROMEDRIVER_VERSION=$(curl -s -k https://chromedriver.storage.googleapis.com/ | xmllint --xpath '//*[local-name()="Contents"]/*[local-name()="Key"]' - | sed 's/<\\/*Key>/\\n/g' | sed -n 's/\\([0-9]\\.[0-9][0-9]*\\)\\/chromedriver_linux64.zip/\\1/p' | sort -V -r | head -1)
     # NOTE: the intermediate xmllint output in the above is not a valid XML
   fi
   PACKAGE_ARCHIVE='chromedriver_linux64.zip'
@@ -260,10 +249,10 @@ if [[ $PROVISION_SELENIUM ]] ; then
     echo "Download the user specified version ${GECKODRIVER_VERSION} of Geckodriver."
   else
     echo Determine the latest version of Geckodriver
-    GECKODRIVER_VERSION=$(curl -insecure -L -# https://github.com/mozilla/geckodriver/releases | sed -n 's/.*<a href="\\/mozilla\\/geckodriver\\/releases\\/download\\/v\\([0-9.][0-9.]*\\)\\/geckodriver-.*-linux64.*/\\1/p' | head -1)
+    GECKODRIVER_VERSION=$(curl -s -insecure -L -# https://github.com/mozilla/geckodriver/releases | sed -n 's/.*<a href="\\/mozilla\\/geckodriver\\/releases\\/download\\/v\\([0-9.][0-9.]*\\)\\/geckodriver-.*-linux64.*/\\1/p' | head -1)
     # alternatively
     GECKO_RELEASE_URL='https://api.github.com/repos/mozilla/geckodriver/releases'
-    GECKODRIVER_VERSION=$(curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -n | head-1)  fi
+    GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -n | head-1)  fi
   fi
   URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
@@ -343,7 +332,7 @@ if [[ $PROVISION_KATALON ]] ; then
       DOWNLOAD_URL="http://download.katalon.com/${KATALON_VERSION_FULL}/${PACKAGE_ARCHIVE}"
       wget -O $PACKAGE_ARCHIVE -nv $DOWNLOAD_URL
       # alternatively
-      # curl -insecure -L -o $PACKAGE_ARCHIVE -k $DOWNLOAD_URL
+      # curl -s -insecure -L -o $PACKAGE_ARCHIVE -k $DOWNLOAD_URL
     else
       echo 'Katalon is already downloaded.'
     fi
@@ -399,7 +388,7 @@ if [[ $PROVISION_VNC ]] ; then
 
   PACKAGE_DEB=tigervncserver_1.6.0-3ubuntu1_amd64.deb
   DOWNLOAD_URL="https://bintray.com/artifact/download/tigervnc/stable/ubuntu-16.04LTS/amd64/tigervncserver_1.8.0-1ubuntu1_amd64.deb"
-  curl -insecure -L -o $PACKAGE_DEB -k $DOWNLOAD_URL
+  curl -s -insecure -L -o $PACKAGE_DEB -k $DOWNLOAD_URL
   # wget -O $PACKAGE_DEB $DOWNLOAD_URL
   dpkg -qi $PACKAGE_DEB || apt -qqy -f install
   rm -f $PACKAGE_DEB
