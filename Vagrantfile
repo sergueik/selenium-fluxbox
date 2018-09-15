@@ -70,8 +70,11 @@ fi
 
 #=========================================================
 echo 'Install the packages'
-# NOTE:  GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
-# Failed to fetch http://dl.google.com/linux/chrome/deb/dists/stable/Release
+
+# GPG servers aren't entirely reliable
+declare -A key_hash=( ['keyserver.ubuntu.com']='1397BC53640DB551' ['keyserver.ubuntu.com']='6494C6D6997C215E' ['pgp.mit.edu']='6494C6D6997C215E')
+for server in "${!key_hash[@]}"; do sudo apt-key adv --keyserver "${server}" --recv-keys "${key_hash[$server]}"; done
+
 apt-get -qq update
 apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget libxml2-utils jq
 #=========================================================
@@ -145,7 +148,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
     echo Download latest Selenium Server
     # use sort field, tab options to build the equivalent of $VERSION_MAJOR*10000 + $VERSION_MINOR *10 + $VERSION_BUILD
     SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -k3,3 -t. | head -1 )
-    echo "The latest Selenium Server version is ${SELENIUM_VERSION}" 
+    echo "The latest Selenium Server version is ${SELENIUM_VERSION}"
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
@@ -169,13 +172,9 @@ if [[ $PROVISION_SELENIUM ]] ; then
     echo "installing Chrome $CHROME_VERSION"
     case $CHROME_VERSION in
     beta|stable|unstable)
-        # as of December 2017 the https://dl.google.com/linux/chrome/deb is occasionally 404 and this will fail (and fail to detect it did fail)
-        # and the only way to install stable Chrome is to interactiely download it
-        # https://www.google.com/linuxrepositories/
+        # https://dl.google.com/linux/chrome/deb is occasionally 404
         # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        # may need a second time for some reason sporadic error
-        # GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
         apt-get install google-chrome-${CHROME_VERSION}

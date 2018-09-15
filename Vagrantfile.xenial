@@ -78,6 +78,11 @@ rm -f /etc/profile.d/proxy.sh
 unset http_proxy HTTP_PROXY https_proxy HTTPS_PROXY
 #=========================================================
 echo Install the packages
+
+# GPG servers aren't entirely reliable
+declare -A key_hash=( ['keyserver.ubuntu.com']='1397BC53640DB551' ['keyserver.ubuntu.com']='6494C6D6997C215E' ['pgp.mit.edu']='6494C6D6997C215E')
+for server in "${!key_hash[@]}"; do sudo apt-key adv --keyserver "${server}" --recv-keys "${key_hash[$server]}"; done
+
 apt-get -qq update
 apt-get -qqy install openjdk-8-jdk fluxbox xorg unzip vim default-jre rungetty wget libxml2-utils jq
 update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
@@ -135,7 +140,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
   else
     echo Download latest Selenium Server
     SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -k3,3 -t. | head -1 )
-    echo "The latest Selenium Server version is ${SELENIUM_VERSION}" 
+    echo "The latest Selenium Server version is ${SELENIUM_VERSION}"
   fi
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
@@ -156,7 +161,6 @@ if [[ $PROVISION_SELENIUM ]] ; then
     apt-get -qqy install --only-upgrade libnss3
     case $CHROME_VERSION in
       beta|stable|unstable)
-        # https://www.google.com/linuxrepositories/
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
