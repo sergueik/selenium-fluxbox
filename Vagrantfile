@@ -252,7 +252,11 @@ if [[ $PROVISION_SELENIUM ]] ; then
     GECKODRIVER_VERSION=$(curl -s -insecure -L -# https://github.com/mozilla/geckodriver/releases | sed -n 's/.*<a href="\\/mozilla\\/geckodriver\\/releases\\/download\\/v\\([0-9.][0-9.]*\\)\\/geckodriver-.*-linux64.*/\\1/p' | head -1)
     # alternatively
     GECKO_RELEASE_URL='https://api.github.com/repos/mozilla/geckodriver/releases'
-    GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -n | head-1)  fi
+    # https://stedolan.github.io/jq/manual/#ConditionalsandComparisons
+    # https://github.com/stedolan/jq/issues/370
+    # NOTE the following shorter filter works just as well:
+    # GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | select(.label == "" ) | .browser_download_url' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | sed 's/^v//'| sort -V -r | head -1)
+    GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] |select(.name | match("^geckodriver.*linux64.*")) | .browser_download_url' | sed 's/^.*\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -nr | head -1)  fi
   fi
   URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
