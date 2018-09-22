@@ -7,14 +7,16 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
-# experimental
+# experimental, Katalon Studio for Linux (Console Mode)
+# NOTE: only OpenJDK 8 - not the Oracle JDK - is supported
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 
 debug = ENV.fetch('DEBUG', '')
 
-# check if requested Chrome version is available on http://www.slimjetbrowser.com/chrome/
+# check if requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
+# NOTE: slimjet chrome download page uses very basic TABLE markup and is not optimized for semantic parsing
 available_chrome_versions = %w|
   69.0.3497.92
   68.0.3440.84
@@ -316,6 +318,7 @@ if [[ $PROVISION_KATALON ]] ; then
   # To always get latest,
   # sign-in
   # https://www.katalon.com/sign-in/
+  # and use post one's account to download links with e.g.
   # https://backend.katalon.com/download?platform=linux_64&id=kouzmine_serguei%40yahoo.com
   # <input type="email" name="user_email" id="user_email" value="" placeholder="Email" required="" autofocus="">
   # <input type="password" name="user_pass" id="user_pass" value="" placeholder="Password" data-errormsg="Please choose a password with a minimum of 6 characters" required="">
@@ -323,7 +326,7 @@ if [[ $PROVISION_KATALON ]] ; then
   # <input class="sign-in" type="submit" id="login-btn" data-loading-text="Sign in" value="Sign in">
   # sign out
   # <a class="page-scroll button-change-hash" href="https://www.katalon.com/wp-login.php?action=logout&amp;redirect_to=https%3A%2F%2Fwww.katalon.com&amp;_wpnonce=469eba9ba4" title="Sign out">Sign out</a>
-
+  # NOTE: GUI version recently become available https://docs.katalon.com/display/KD/Katalon+Studio+GUI+(beta)+for+Linux
   if [[ $KATALON_VERSION ]] ; then
 
     # NOTE: 5.5, 5.6.0 - still bad download, use manually downloaded cached copy to workaround
