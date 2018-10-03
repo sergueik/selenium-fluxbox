@@ -40,7 +40,6 @@ vagrant up
 Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driver can be set through the environment variables
 `SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`.
 
-
 Sampe supported combinations of legacy browser and driver versions are listed below.
 Note: this list is provided as an example, and is not maintained.
 
@@ -71,15 +70,17 @@ For Chrome, the `CHROME_VERSION` can also set to `stable`, `unstable` or `beta` 
 
 `Vagrantfile` automates the Chrome debian package download from
 [https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php).
-Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there. 
+Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
+Note there is often few Chrome builds released with the same major, minor version like e.g. __69.0.3497.100__ vs. __69.0.3497.92__ and on
+slimjet one typically finds just one of those - therefore it is not recommended to use Slimjet with the most recent builds.
 
 Internaly the chromedriver communicates with Chrome browser via [WebSockets DevTools debugging interface](https://stackoverflow.com/questions/44244505/how-chromedriver-is-communicating-internally-with-the-browser?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
 
 Note that the actual download directory `http://www.slimjetbrowser.com/chrome/lnx/` is not directly browsable.
-Alternatively a handful of *really* old Chrome browser debian packages can be  manually downloaded from [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old). Note that these a
+Alternatively a handful of *really* old Chrome browser debian packages can be  manually downloaded from [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old).
 
-Note: the error `Unsupported major.minor version 52.0` is a manifestation of a Java version mismatch between the Selenium.jar and the environment. For Trusty,
-you will have to switch to JDK 8 by setting the `USE_ORACLE_JAVA` environment to `true` and reprovision.
+Note: the runtime error `Unsupported major.minor version 52.0` is a manifestation of a Java version mismatch between the Selenium.jar and the environment.
+For Ubuntu Trusty, one can switch to JDK 8 by setting the `USE_ORACLE_JAVA` environment to `true` and re-provision the box.
 
 ### Limitations
   * The hub is available on `http://127.0.0.1:4444/wd/hub/static/resource/hub.html` with some delay after the Virtual Box reboot - currently there is no visual cue on when the box is ready.
