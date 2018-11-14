@@ -1,15 +1,15 @@
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 selenium_version = ENV.fetch('SELENIUM_VERSION', '2.53')
-chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '2.24')
+chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '2.42')
 firefox_version = ENV.fetch('FIREFOX_VERSION', '45.0.1')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 # experimental
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 
 # ensure the requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
-# NOTE: slimjet chrome download page uses very basic TABLE markup and is not optimized for semantic parsing
-
+# TODO: embed 'get_chrome_version.rb'
 available_chrome_versions = %w|
+  70.0.3538.77
   69.0.3497.92
   68.0.3440.84
   67.0.3396.79

@@ -1,3 +1,6 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 
 selenium_version = ENV.fetch('SELENIUM_VERSION', '')
@@ -15,9 +18,11 @@ provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 
 debug = ENV.fetch('DEBUG', '')
 
-# check if requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
-# NOTE: slimjet chrome download page uses very basic TABLE markup and is not optimized for semantic parsing
+# Check if requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
+# TODO: embed 'get_chrome_version.rb'
+# NOTE: Build 70 has multiple releases: 70.0.3538.102, 70.0.3538.67
 available_chrome_versions = %w|
+  70.0.3538.77
   69.0.3497.92
   68.0.3440.84
   67.0.3396.79
@@ -175,10 +180,13 @@ if [[ $PROVISION_SELENIUM ]] ; then
     echo "installing Chrome $CHROME_VERSION"
     case $CHROME_VERSION in
     beta|stable|unstable)
-        # https://dl.google.com/linux/chrome/deb is occasionally 404
-        # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
+        # NOTE: https://dl.google.com/linux/chrome/deb is occasionally 404
+        # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/        
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         apt-add-repository http://dl.google.com/linux/chrome/deb/
+        # curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        # echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
+
         apt-get -qq update
         apt-get install google-chrome-${CHROME_VERSION}
       ;;
