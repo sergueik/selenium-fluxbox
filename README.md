@@ -91,7 +91,17 @@ vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 ```
 this currently works with trusty but not always with xenial base box in Virtual Box.
 
+### Note Latest old Chrome builds
+
+The Chrome Build 70 is having multiple releases:
+  - `70.0.3538.110`
+  - `70.0.3538.102`
+  - `70.0.3538.77`
+  - `70.0.3538.67`
+- not every build is available in slimjet.
+
 ### Work in Progress
+
  * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
  * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
  * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta), [lucidworks/browser-tester](https://github.com/lucidworks/browser-tester)

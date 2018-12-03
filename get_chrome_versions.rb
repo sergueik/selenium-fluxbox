@@ -14,7 +14,7 @@ res = Net::HTTP.start(
     input = res.body	
     document = Nokogiri::HTML(input)
     document.search('a[href *= "download-chrome.php"][href *= ".deb"]').each do |row|
-      # 69 and 70 - format change
+      # 69 and 70 - download url format change
       # from download-chrome.php?file=lnx%2Fchrome64_*.deb
       # to files%2F*%2Fgoogle-chrome-stable_current_amd64.deb
       # $stderr.puts row.attributes["href"]

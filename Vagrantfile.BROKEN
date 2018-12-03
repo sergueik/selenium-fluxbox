@@ -3,10 +3,7 @@
 
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 
-# This verison of Vagrantfile has various "alternative" commands many of which do not work removed temporarily.
-# Please refer to Vagrantfile.OLD for those command details.
-
-selenium_version = ENV.fetch('SELENIUM_VERSION', '3.14.0')
+selenium_version = ENV.fetch('SELENIUM_VERSION', '')
 chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '')
 firefox_version = ENV.fetch('FIREFOX_VERSION', '')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
@@ -22,7 +19,8 @@ provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 debug = ENV.fetch('DEBUG', '')
 
 # Check if requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
-# TODO: embed the 'get_chrome_version.rb'
+# TODO: embed 'get_chrome_version.rb'
+
 available_chrome_versions = %w|
   70.0.3538.77
   69.0.3497.92
@@ -50,8 +48,6 @@ available_chrome_versions = %w|
 |
 # TODO: add mnemonicts as oldest => -1, newest => 0
 chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
-# NOTE: There has been a change in release filename format, not accounted for yet
-chrome_version = '68.0.3440.84'
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION should be set to "stable", "unstable" "dev" or "beta"'
   puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php:\n" + available_chrome_versions.join("\n")
@@ -84,7 +80,6 @@ fi
 echo 'Install the packages'
 
 # GPG servers aren't entirely reliable
-
 declare -A key_hash=( ['keyserver.ubuntu.com']='1397BC53640DB551' ['keyserver.ubuntu.com']='6494C6D6997C215E' ['pgp.mit.edu']='6494C6D6997C215E')
 for server in "${!key_hash[@]}"; do sudo apt-key adv --keyserver "${server}" --recv-keys "${key_hash[$server]}"; done
 
@@ -152,33 +147,23 @@ if [[ $PROVISION_SELENIUM ]] ; then
     echo Download Selenium version $SELENIUM_VERSION
     SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
     if [ -z $SELENIUM_RELEASE ] ; then
-      echo "Invalid version: ${SELENIUM_VERSION}"
+      echo Invalid version
       exit 1
     else
       echo "Selenium release: ${SELENIUM_RELEASE}"
     fi
   else
-    echo Determine the latest Selenium Server version to download
+    echo Download latest Selenium Server
     # use sort field, tab options to build the equivalent of $VERSION_MAJOR*10000 + $VERSION_MINOR *10 + $VERSION_BUILD
     SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -k3,3 -t. | head -1 )
     echo "The latest Selenium Server version is ${SELENIUM_VERSION}"
-    #  SELENIUM_VERSION=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -t. | head -1 )
-    # echo "SELENIUM_VERSION=${SELENIUM_VERSION}"
   fi
-  SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | sed -n "s/.*<Key>\\(${SELENIUM_VERSION}\\/selenium-server-standalone[^<][^>]*\\)<\\/Key>.*/\\1/p")
-  # TODO: the following command broken again,
-  # at least for some values of $SELENIUM_VERSION,
-  # e.g. with '3.141' the error is:
-  # XPath set is empty
-  # SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
-  if [[ ! -e $PACKAGE_ARCHIVE ]] ; then
+  if [ ! -e $PACKAGE_ARCHIVE ] ; then
     URL="https://selenium-release.storage.googleapis.com/${SELENIUM_RELEASE}"
     echo Downloading Selenium $PACKAGE_ARCHIVE from $URL
     wget -O $PACKAGE_ARCHIVE -nv $URL
-    # TODO: retry if selenium-server-standalone-${SELENIUM_VERSION}.jar is truncated (rare)
-
   else
     echo Using already downloaded $PACKAGE_ARCHIVE
   fi
@@ -195,14 +180,13 @@ if [[ $PROVISION_SELENIUM ]] ; then
     echo "installing Chrome $CHROME_VERSION"
     case $CHROME_VERSION in
     beta|stable|unstable)
-        # the https://dl.google.com/linux/chrome/deb occasionally returns a 404 and this will fail without discovering it
-        # and the only way to install stable Chrome is to interactiely download it
-        # https://www.google.com/linuxrepositories/
-        # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/
+        # NOTE: https://dl.google.com/linux/chrome/deb is occasionally 404
+        # http://www.allaboutlinux.eu/install-google-chrome-in-debian-8/        
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        # may need a second time for some reason sporadic error
-        # GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
         apt-add-repository http://dl.google.com/linux/chrome/deb/
+        # curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        # echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
+
         apt-get -qq update
         apt-get install google-chrome-${CHROME_VERSION}
       ;;
@@ -215,16 +199,15 @@ if [[ $PROVISION_SELENIUM ]] ; then
         # Alternatively use xmllint
         # TODO: fix trailing whitespace
         curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
-        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_|\\n|gp' | sed 's|\\.deb"||' | sort -ru | head -1)
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_|\\n|gp;' | sed 's|\\.deb"||' | sort -ru | head -1)
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
-        # NOTE: incorrectly returns 68
-        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp'| sort -ru | head -1 | awk '{print $1}')
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -ru | head -1 | awk '{print $1}')
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         echo Installing Chrome version $CHROME_VERSION
         export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
         cd /vagrant
         PACKAGE_ARCHIVE="chrome64_${CHROME_VERSION}.deb"
-        if [[ ! -e $PACKAGE_ARCHIVE ]] ; then
+        if [ ! -e $PACKAGE_ARCHIVE ] ; then
           echo Downloading Chrome from $URL
           wget -nv $URL
         else
@@ -254,10 +237,13 @@ if [[ $PROVISION_SELENIUM ]] ; then
   else
     echo Download latest Chromedriver
     CHROMEDRIVER_VERSION=$(curl -s "http://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+    # alternartively
+    CHROMEDRIVER_VERSION=$(curl -s -k https://chromedriver.storage.googleapis.com/ | xmllint --xpath '//*[local-name()="Contents"]/*[local-name()="Key"]' - | sed 's/<\\/*Key>/\\n/g' | sed -n 's/\\([0-9]\\.[0-9][0-9]*\\)\\/chromedriver_linux64.zip/\\1/p' | sort -V -r | head -1)
+    # NOTE: the intermediate xmllint output in the above is not a valid XML
   fi
   PACKAGE_ARCHIVE='chromedriver_linux64.zip'
   cd /vagrant
-  if [[ ! -e $PACKAGE_ARCHIVE ]]; then
+  if [ ! -e $PACKAGE_ARCHIVE ]; then
     # possible platform options: linux32, linux64, mac64, win32
     PLATFORM=linux64
     URL="http://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_${PLATFORM}.zip"
@@ -273,16 +259,17 @@ if [[ $PROVISION_SELENIUM ]] ; then
   if [[ $GECKODRIVER_VERSION ]] ; then
     echo "Download the user specified version ${GECKODRIVER_VERSION} of Geckodriver."
   else
-    echo Determine the latest version of GeckoDriver
+    echo Determine the latest version of Geckodriver
+    GECKODRIVER_VERSION=$(curl -s -insecure -L -# https://github.com/mozilla/geckodriver/releases | sed -n 's/.*<a href="\\/mozilla\\/geckodriver\\/releases\\/download\\/v\\([0-9.][0-9.]*\\)\\/geckodriver-.*-linux64.*/\\1/p' | head -1)
+    # alternatively
     GECKO_RELEASE_URL='https://api.github.com/repos/mozilla/geckodriver/releases'
     # https://stedolan.github.io/jq/manual/#ConditionalsandComparisons
     # https://github.com/stedolan/jq/issues/370
-    echo Processing list of GeckoDriver releases:
-    curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///'
-    GECKODRIVER_VERSION=$(curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -rn | head -1 )
-    GECKODRIVER_RELEASE=$(curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*download\\///' | grep "$GECKODRIVER_VERSION" | tr -d '"')
+    # NOTE the following shorter filter works just as well:
+    # GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | select(.label == "" ) | .browser_download_url' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | sed 's/^v//'| sort -V -r | head -1)
+    GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] |select(.name | match("^geckodriver.*linux64.*")) | .browser_download_url' | sed 's/^.*\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -nr | head -1)  fi
   fi
-  URL="https://github.com/mozilla/geckodriver/releases/download/${GECKODRIVER_RELEASE}"
+  URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
   echo Downloading GECKODRIVER version $GECKODRIVER_VERSION from $URL
   wget -O $ARCHIVE -nv $URL
@@ -336,7 +323,8 @@ if [[ $PROVISION_KATALON ]] ; then
   # </HostId>
   # </Error>
   # http://download.katalon.com/5.6.0/Katalon_Studio_Linux_64-5.6.tar.gz
-  # To always get the latest version, sign-in
+  # To always get latest,
+  # sign-in
   # https://www.katalon.com/sign-in/
   # and use post one's account to download links with e.g.
   # https://backend.katalon.com/download?platform=linux_64&id=kouzmine_serguei%40yahoo.com
@@ -385,14 +373,14 @@ if [[ $PROVISION_KATALON ]] ; then
 
   # replace the drivers:
 
-  if [[ -e '/home/vagrant/chromedriver' ]] ; then
+  if [[ -f '/home/vagrant/chromedriver' ]] ; then
     EMBEDDED_DRIVER=$KATALON_INSTALL_DIR/configuration/resources/drivers/chromedriver_linux64/chromedriver
     pushd $(dirname $EMBEDDED_DRIVER)
     rm -f $EMBEDDED_DRIVER
     ln -s /home/vagrant/geckodriver
     popd
   fi
-  if [[ -e '/home/vagrant/geckodriver' ]] ; then
+  if [[ -f '/home/vagrant/geckodriver' ]] ; then
     EMBEDDED_DRIVER=$KATALON_INSTALL_DIR/configuration/resources/drivers/firefox_linux64/geckodriver
     # pushd $(dirname $EMBEDDED_DRIVER)
     rm -f $EMBEDDED_DRIVER
