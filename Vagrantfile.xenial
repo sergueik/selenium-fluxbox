@@ -1,7 +1,7 @@
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
-selenium_version = ENV.fetch('SELENIUM_VERSION', '2.53')
-chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '2.42')
-firefox_version = ENV.fetch('FIREFOX_VERSION', '45.0.1')
+selenium_version = ENV.fetch('SELENIUM_VERSION', '3.14.0')
+chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '2.44')
+firefox_version = ENV.fetch('FIREFOX_VERSION', '63.0.1')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 # experimental
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
@@ -37,6 +37,8 @@ available_chrome_versions = %w|
 # TODO: add mnemonicts as oldest => -1, newest => 0
 chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
 # chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[-1])
+# NOTE: There has been a change in release filename format, not accounted for yet
+chrome_version = '68.0.3440.84'
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION should be set to "stable", "unstable" or "beta"'
   puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php:\n" + available_chrome_versions.join("\n")
@@ -51,6 +53,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.box = 'ubuntu/xenial64'
   # Localy cached vagrant box image from https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box
+  # NOTE: vilnerable to time-consuming 
+  # "intel_rapl: no valid rapl domains" message upon boot
+  # in inital Vagrant run
+  # https://askubuntu.com/questions/449574/intel-rapl-no-valid-rapl-domains-message-upon-boot
   config_vm_box_name = 'xenial-server-amd64-vagrant-selenium.box'
   config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
   config.vm.network :forwarded_port, guest:4444, host:4444
@@ -89,7 +95,9 @@ declare -A key_hash=( ['keyserver.ubuntu.com']='1397BC53640DB551' ['keyserver.ub
 for server in "${!key_hash[@]}"; do sudo apt-key adv --keyserver "${server}" --recv-keys "${key_hash[$server]}"; done
 
 apt-get -qq update
+
 apt-get -qqy install openjdk-8-jdk fluxbox xorg unzip vim default-jre rungetty wget libxml2-utils jq
+# NOTE: missing '/usr/share/images/fluxbox/ubuntu-light.png'
 update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 #=========================================================
 echo Set autologin for the vagrant user
@@ -133,9 +141,10 @@ if [[ $PROVISION_SELENIUM ]] ; then
   fi
   #=========================================================
   SELENIUM_VERSION='#{selenium_version}'
+  SELENIM_RELEASE_URL='https://selenium-release.storage.googleapis.com/'
   if [[ $SELENIUM_VERSION ]] ; then
-    echo Download Selenium version $SELENIUM_VERSION
-    SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
+    echo Download specific Selenium version $SELENIUM_VERSION
+    SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" - )
     if [ -z $SELENIUM_RELEASE ] ; then
       echo Invalid version
       exit 1
@@ -147,6 +156,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
     SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -k3,3 -t. | head -1 )
     echo "The latest Selenium Server version is ${SELENIUM_VERSION}"
   fi
+  SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" - )
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
   if [ ! -e $PACKAGE_ARCHIVE ] ; then
@@ -235,13 +245,17 @@ if [[ $PROVISION_SELENIUM ]] ; then
   if [[ $GECKODRIVER_VERSION ]] ; then
     echo "Download the user specified version ${GECKODRIVER_VERSION} of Geckodriver."
   else
-    echo Determine the latest version of Geckodriver
-    GECKODRIVER_VERSION=$(curl -s -insecure -L -# https://github.com/mozilla/geckodriver/releases | sed -n 's/.*<a href="\\/mozilla\\/geckodriver\\/releases\\/download\\/v\\([0-9.][0-9.]*\\)\\/geckodriver-.*-linux64.*/\\1/p' | head -1)
-    # alternatively
+    echo Determine the latest version of GeckoDriver
     GECKO_RELEASE_URL='https://api.github.com/repos/mozilla/geckodriver/releases'
-    GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | select(.label == "" ) | .browser_download_url' | grep 'linux64' | sed 's/^.*\///' | cut -f2 -d'-' | sed 's/^v//'| sort -V -r | head -1)
+    # https://stedolan.github.io/jq/manual/#ConditionalsandComparisons
+    # https://github.com/stedolan/jq/issues/370
+    echo Processing list of GeckoDriver releases...
+    # uncomment next line for debugging
+    # curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///'
+    GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -rn | head -1 )
+    GECKODRIVER_RELEASE=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*download\\///' | grep "$GECKODRIVER_VERSION" | tr -d '"')
   fi
-  URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
+  URL="https://github.com/mozilla/geckodriver/releases/download/${GECKODRIVER_RELEASE}"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
   echo Downloading GECKODRIVER version $GECKODRIVER_VERSION from $URL
   wget -O $ARCHIVE -nv $URL
@@ -466,13 +480,18 @@ EOF
 echo Install tmux scripts
 cat <<EOF> tmux.sh
 #!/bin/sh
-tmux start-server
+if \\$(netstat -lp 2> /dev/null| grep -q X) ; then
+  echo 'X already started'
+else
+  tmux start-server
+fi
 
 tmux new-session -d -s chrome-driver
 tmux send-keys -t chrome-driver:0 'export DISPLAY=:0' C-m
 tmux send-keys -t chrome-driver:0 './chromedriver' C-m
 
 tmux new-session -d -s selenium
+tmux send-keys -t selenium:0 '/usr/bin/xrandr -s 1280x800' C-m
 tmux send-keys -t selenium:0 'export DISPLAY=:0' C-m
 
 # NOTE options for java runtime.

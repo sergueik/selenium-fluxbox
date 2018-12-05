@@ -149,8 +149,8 @@ if [[ $PROVISION_SELENIUM ]] ; then
   SELENIUM_VERSION='#{selenium_version}'
   SELENIM_RELEASE_URL='https://selenium-release.storage.googleapis.com/'
   if [[ $SELENIUM_VERSION ]] ; then
-    echo Download Selenium version $SELENIUM_VERSION
-    SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
+    echo Download specific Selenium version $SELENIUM_VERSION
+    SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" - )
     if [ -z $SELENIUM_RELEASE ] ; then
       echo "Invalid version: ${SELENIUM_VERSION}"
       exit 1
@@ -162,15 +162,9 @@ if [[ $PROVISION_SELENIUM ]] ; then
     # use sort field, tab options to build the equivalent of $VERSION_MAJOR*10000 + $VERSION_MINOR *10 + $VERSION_BUILD
     SELENIUM_VERSION=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -k3,3 -t. | head -1 )
     echo "The latest Selenium Server version is ${SELENIUM_VERSION}"
-    #  SELENIUM_VERSION=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[local-name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '.jar')]" --shell - | sed -ne 's/<\\/*Key>/\\n/pg' | awk -F / '{print $1}' | sort -r -u -n -k1,1 -k2,2 -t. | head -1 )
-    # echo "SELENIUM_VERSION=${SELENIUM_VERSION}"
   fi
-  SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | sed -n "s/.*<Key>\\(${SELENIUM_VERSION}\\/selenium-server-standalone[^<][^>]*\\)<\\/Key>.*/\\1/p")
-  # TODO: the following command broken again,
-  # at least for some values of $SELENIUM_VERSION,
-  # e.g. with '3.141' the error is:
-  # XPath set is empty
-  # SELENIUM_RELEASE=$(curl -# $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" -)
+  SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | xmllint --xpath "//*[name() = 'Key'][contains(text(), 'selenium-server-standalone')][contains(text(), '${SELENIUM_VERSION}.jar')]/text()" - )
+  # SELENIUM_RELEASE=$(curl -s $SELENIM_RELEASE_URL | sed -n "s/.*<Key>\\(${SELENIUM_VERSION}\\/selenium-server-standalone[^<][^>]*\\)<\\/Key>.*/\\1/p")
   PACKAGE_ARCHIVE="selenium-server-standalone-${SELENIUM_VERSION}.jar"
   cd /vagrant
   if [[ ! -e $PACKAGE_ARCHIVE ]] ; then
@@ -277,10 +271,11 @@ if [[ $PROVISION_SELENIUM ]] ; then
     GECKO_RELEASE_URL='https://api.github.com/repos/mozilla/geckodriver/releases'
     # https://stedolan.github.io/jq/manual/#ConditionalsandComparisons
     # https://github.com/stedolan/jq/issues/370
-    echo Processing list of GeckoDriver releases:
-    curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///'
-    GECKODRIVER_VERSION=$(curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -rn | head -1 )
-    GECKODRIVER_RELEASE=$(curl -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*download\\///' | grep "$GECKODRIVER_VERSION" | tr -d '"')
+    echo Processing list of GeckoDriver releases...
+    # uncomment next line for debugging
+    # curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///'
+    GECKODRIVER_VERSION=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*\\///' | cut -f2 -d'-' | cut -f2,2,4 -d'.'| sort -rn | head -1 )
+    GECKODRIVER_RELEASE=$(curl -s -k $GECKO_RELEASE_URL | jq '.[] | .assets[] | .browser_download_url' | grep -v 'wires' | grep 'linux64' | sed 's/^.*download\\///' | grep "$GECKODRIVER_VERSION" | tr -d '"')
   fi
   URL="https://github.com/mozilla/geckodriver/releases/download/${GECKODRIVER_RELEASE}"
   ARCHIVE='/var/tmp/geckodriver_linux64.tar.gz'
@@ -431,7 +426,8 @@ EOF
 echo Install tmux scripts
 cat <<EOF> tmux.sh
 #!/bin/sh
-if $(netstat -lp | grep X) ; then
+if \\$(netstat -lp 2> /dev/null| grep -q X) ; then
+  echo 'X already started'
 else
   tmux start-server
 fi
@@ -449,6 +445,7 @@ tmux send-keys -t selenium:0 'java -Xmn512M -Xms1G -Xmx1G -jar selenium-server-s
 tmux send-keys -t selenium:0 'for cnt in {0..10}; do wget -O- http://127.0.0.1:4444/wd/hub; sleep 120; done' C-m
 
 EOF
+ 
 chmod +x tmux.sh
 chown vagrant:vagrant tmux.sh
 #=========================================================
