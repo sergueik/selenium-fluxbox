@@ -37,8 +37,7 @@ available_chrome_versions = %w|
 # TODO: add mnemonicts as oldest => -1, newest => 0
 chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
 # chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[-1])
-# NOTE: There has been a change in release filename format, not accounted for yet
-chrome_version = '68.0.3440.84'
+
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION should be set to "stable", "unstable" or "beta"'
   puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php:\n" + available_chrome_versions.join("\n")
@@ -186,22 +185,30 @@ if [[ $PROVISION_SELENIUM ]] ; then
         # TODO: fix trailing whitespace
         apt-get -qqy install libxml2-utils
         curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
-        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1 | awk '{print $1}')
+        echo 'Trying the new release format'
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=files')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=files%2F\\([0-9][0-9.]*\\)%2Fgoogle-chrome-stable_current_amd64.deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1 | awk '{print $1}')
+        LATEST_CHROME_RELEASE="files/${LATEST_CHROME_VERSION}/google-chrome-stable_current_amd64.deb"
+        PACKAGE_ARCHIVE="google-chrome-stable_current_amd64.deb"
+        if [ -z $LATEST_CHROME_VERSION ] ;then
+        echo 'Trying the old release format'
+          LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1 | awk '{print $1}')
+          LATEST_CHROME_RELEASE="lnx/chrome64_${LATEST_CHROME_VERSION}.deb"
+          PACKAGE_ARCHIVE="chrome64_${CHROME_VERSION}.deb"
+        fi
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         echo Installing Chrome version $CHROME_VERSION
-        export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
+        export URL="http://www.slimjetbrowser.com/chrome/${LATEST_CHROME_RELEASE}"
         cd /vagrant
-        PACKAGE_ARCHIVE="chrome64_${CHROME_VERSION}.deb"
-        if [ ! -e $PACKAGE_ARCHIVE ]
+        if [ -e $PACKAGE_ARCHIVE ]
         then
+          echo Using already downloaded archive $PACKAGE_ARCHIVE
+        else
           echo Downloading Chrome from $URL
           wget -nv $URL
-        else
-          echo Using already downloaded archive $PACKAGE_ARCHIVE
         fi
         apt-get install -qqy libxss1 libappindicator1 libindicator7
-        dpkg -i "chrome64_${CHROME_VERSION}.deb"
-        # rm "chrome64_${CHROME_VERSION}.deb"
+        dpkg -i $PACKAGE_ARCHIVE
+        # rm $PACKAGE_ARCHIVE
         cd /home/vagrant
       ;;
     esac
@@ -532,3 +539,4 @@ sudo reboot
     # VBoxManage controlvm 'Selenium Fluxbox Trusty' setvideomodehint 1280 800 32
   end
 end
+

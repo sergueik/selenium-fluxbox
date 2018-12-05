@@ -50,8 +50,7 @@ available_chrome_versions = %w|
 |
 # TODO: add mnemonicts as oldest => -1, newest => 0
 chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
-# NOTE: There has been a change in release filename format, not accounted for yet
-chrome_version = '68.0.3440.84'
+
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION should be set to "stable", "unstable" "dev" or "beta"'
   puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php:\n" + available_chrome_versions.join("\n")
@@ -181,14 +180,14 @@ if [[ $PROVISION_SELENIUM ]] ; then
   chown vagrant:vagrant selenium-server-standalone.jar
   #=========================================================
   CHROME_VERSION='#{chrome_version}'
-  if [[ $CHROME_VERSION ]]; then
+  if [[ $CHROME_VERSION ]] ; then
     echo installing libnss3
     # https://stackoverflow.com/questions/46126902/fix-nss-version-not-match-when-update-chrome-in-ubuntu
     # for trusty need the following command may get the correct version of libnss3, which is a prerequisite of Chrome 64+
     apt-get -qqy install --only-upgrade libnss3
     echo "installing Chrome $CHROME_VERSION"
     case $CHROME_VERSION in
-    beta|stable|unstable)
+      beta|stable|unstable)
         # the https://dl.google.com/linux/chrome/deb occasionally returns a 404 and this will fail without discovering it
         # and the only way to install stable Chrome is to interactiely download it
         # https://www.google.com/linuxrepositories/
@@ -204,29 +203,31 @@ if [[ $PROVISION_SELENIUM ]] ; then
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
         apt-get remove -qqy -f google-chrome-stable
         apt-get -qqy install libxml2-utils
-        LATEST_CHROME_VERSION=$(curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php| grep 'download-chrome.php?file=lnx'| sed -n 's/<tr>/\\n\\n/gp'|sed -n "s/.*<a href='download-chrome.php?file=lnx%2Fchrome64_[0-9][0-9_.]*\\.deb'>\\([0-9][0-9.]*\\)<.*$/\\1/p" | sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1)
-        echo latest Chrome version available on slimjet: $LATEST_CHROME_VERSION
-        # Alternatively use xmllint
-        # TODO: fix trailing whitespace
         curl -s https://www.slimjet.com/chrome/google-chrome-old-version.php -o /tmp/a.html
-        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_|\\n|gp' | sed 's|\\.deb"||' | sort -ru | head -1)
-        echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
-        # NOTE: incorrectly returns 68
-        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp'| sort -ru | head -1 | awk '{print $1}')
+        echo 'Trying the new release format'
+        LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=files')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=files%2F\\([0-9][0-9.]*\\)%2Fgoogle-chrome-stable_current_amd64.deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1 | awk '{print $1}')
+        LATEST_CHROME_RELEASE="files/${LATEST_CHROME_VERSION}/google-chrome-stable_current_amd64.deb"
+        PACKAGE_ARCHIVE="google-chrome-stable_current_amd64.deb"
+        if [ -z $LATEST_CHROME_VERSION ] ;then
+        echo 'Trying the old release format'
+          LATEST_CHROME_VERSION=$(xmllint --htmlout --html --xpath "//table[3]//tr/td/a[contains(@href,'file=lnx')]/@href" /tmp/a.html 2> /dev/null | sed 's|href="download-chrome.php?file=lnx%2Fchrome64_\\([0-9][0-9.]*\\).deb"|\\n\\1|gp;'| sort -r -u -n -k1,1 -k2,2 -k3,3 -t.| head -1 | awk '{print $1}')
+          LATEST_CHROME_RELEASE="lnx/chrome64_${LATEST_CHROME_VERSION}.deb"
+          PACKAGE_ARCHIVE="chrome64_${CHROME_VERSION}.deb"
+        fi
         echo "Latest Chrome version available on slimjet: '${LATEST_CHROME_VERSION}'"
         echo Installing Chrome version $CHROME_VERSION
-        export URL="http://www.slimjetbrowser.com/chrome/lnx/chrome64_${CHROME_VERSION}.deb"
+        export URL="http://www.slimjetbrowser.com/chrome/${LATEST_CHROME_RELEASE}"
         cd /vagrant
-        PACKAGE_ARCHIVE="chrome64_${CHROME_VERSION}.deb"
-        if [[ ! -e $PACKAGE_ARCHIVE ]] ; then
+        if [ -e $PACKAGE_ARCHIVE ]
+        then
+          echo Using already downloaded archive $PACKAGE_ARCHIVE
+        else
           echo Downloading Chrome from $URL
           wget -nv $URL
-        else
-          echo Using already downloaded archive $PACKAGE_ARCHIVE
         fi
         apt-get install -qqy libxss1 libappindicator1 libindicator7
-        dpkg -i "chrome64_${CHROME_VERSION}.deb"
-        # rm "chrome64_${CHROME_VERSION}.deb"
+        dpkg -i $PACKAGE_ARCHIVE
+        # rm $PACKAGE_ARCHIVE
         cd /home/vagrant
       ;;
     esac
@@ -445,7 +446,7 @@ tmux send-keys -t selenium:0 'java -Xmn512M -Xms1G -Xmx1G -jar selenium-server-s
 tmux send-keys -t selenium:0 'for cnt in {0..10}; do wget -O- http://127.0.0.1:4444/wd/hub; sleep 120; done' C-m
 
 EOF
- 
+
 chmod +x tmux.sh
 chown vagrant:vagrant tmux.sh
 #=========================================================
