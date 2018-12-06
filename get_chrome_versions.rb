@@ -1,10 +1,43 @@
 require 'uri'
 require 'net/https'
 require 'pp'
-require 'nokogiri'
+
 
 $DEBUG = false
 $VERBOSE = false
+
+# optionally when there is gem, use it
+# https://airbrake.io/blog/ruby-exception-handling/loaderror
+has_nokogiri = false
+begin
+  require 'nokogiri'
+  puts 'Loading "nokogiri"'
+  has_nokogiri = true
+rescue LoadError =>  e
+  if ! has_nokogiri
+    if $DEBUG
+      STDERR.printf 'Exception (ignored): %s', message
+    end
+  end
+end
+# TODO: clear
+has_restclient = false
+begin
+  require 'restclient'
+  puts 'Loading "restclient"'
+  has_restlient = true
+rescue LoadError =>  e
+  if ! has_restlient
+    if $DEBUG
+      # TODO:
+      # message = sprintf('Exception (ignored): %s', e.message)
+      STDERR.printf('Exception (ignored): %70.68s', e.message)
+    end
+  end
+end
+pp "Loaded nokogiri: #{has_nokogiri}"
+pp "Loaded restclient: #{has_restclient}"
+
 
 uri = URI('https://www.slimjet.com/chrome/google-chrome-old-version.php')
 req = Net::HTTP::Get.new(uri.path)
