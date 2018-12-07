@@ -1,10 +1,23 @@
 require 'uri'
 require 'net/https'
 require 'pp'
+require 'optparse'
 
+options = {}
+OptionParser.new do |opts|
+  opts.banner = 'Usage: example.rb [options]'
+  opts.on('-v', '--[no-]verbose', 'Run verbosely') do |v|
+    options[:verbose] = v
+  end
+  opts.on('-rRELEASE', '--run=RELEASE', 'Return the build number of available RELEASE chrome') do |data|
+    options[:version] = data
+  end
+end.parse!
 
-$DEBUG = false
-$VERBOSE = false
+$DEBUG = options[:debug]
+$RELEASE = options[:version]
+$VERBOSE = options[:verbose]
+$BASE_DOWNLOAD='http://www.slimjetbrowser.com/chrome'
 
 # optionally when there is gem, use it
 # https://airbrake.io/blog/ruby-exception-handling/loaderror
@@ -49,10 +62,13 @@ res = Net::HTTP.start(
   res = https.request(req)
   if res.code.to_s == '200'
     input = res.body
+    if $VERBOSE
+      STDERR.puts input
+    end
     begin
       document = Nokogiri::HTML(input)
       document.search('a[href *= "download-chrome.php"][href *= ".deb"]').each do |row|
-        # 69 and 70 - download url format change
+        # release 69+ download url format change
         # from download-chrome.php?file=lnx%2Fchrome64_*.deb
         # to files%2F*%2Fgoogle-chrome-stable_current_amd64.deb
         # therefore need to keep both text and url
@@ -74,9 +90,22 @@ res = Net::HTTP.start(
     end
   end
 end
-pp downloads
-last_download = (downloads.sort_by {|version, url| version}).last
-pp last_download
+if $VERBOSE
+  pp downloads
+end
+if $RELEASE.nil? 
+  # TODO:
+  # puts downloads.sort_by(&:key).first
 
-#
-# puts downloads.sort_by(&:key).first
+  last_download = (downloads.sort_by {|build, url| build}).last
+  # no longer a hash  
+  pp [last_download[0], "#{$BASE_DOWNLOAD}/#{last_download[1]}"]
+else
+  selected_build = downloads.keys.find {|build| build =~ /^#{$RELEASE}.*/i}
+  if selected_build.nil?
+    puts "The specific release #{$RELEASE} is not available on https://www.slimjet.com/chrome/google-chrome-old-version.php"
+  else
+    pp [selected_build,"#{$BASE_DOWNLOAD}/#{downloads[selected_build]}"]
+  end
+end
+

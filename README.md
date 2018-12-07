@@ -1,15 +1,17 @@
 ### Info
 
-
-This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ and Xenial __16.04__ Vagrant box instances containing
+This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ or Xenial __16.04__ Vagrant box instance
+containing
 
  * [Fluxbox](https://wiki.debian.org/FluxBox)
- * [Tmux](https://github.com/tmux/tmux) autologin
- * Stable release of Selenium Server 3.x or legacy __2.53__ or other, user-specified version of Selenium
- * Chrome and Chrome Driver
- * Firefox with optional [Gecko Driver](https://github.com/mozilla/geckodriver/releases)
+ * [tmux](https://github.com/tmux/tmux) autologin
+ * User-specified version of Selenium ( __3.x__ or legacy __2.53__ )
+ * Chrome
+ * Chrome Driver
+ * Firefox
+ * Gecko Driver
 
-The 'bleeding edge' versions of the drivers do not always work well together, e.g. through errors like:
+The 'bleeding edge' versions of the drivers sometimes don't work well together, e.g. through errors like:
 `org.openqa.selenium.WebDriverException: unknown error: Chrome version must be >= 52.0.2743.0 ...`
 Likewise the Selenium hub error
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/session_error.png)
@@ -20,17 +22,20 @@ One often wishes to enforce specific past versions of Selenium-based toolchain.
 Vagrant makes this easy.
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
 
-Note: Docker makes this easy too, but there is no native Docker port for Windows 8.x and earlier and this could be one's reason to stay with Vagrant
+Note: Docker makes this easy too, but there is no native Docker port for Windows 8.x and earlier and
+this could be one's reason to stay with Vagrant.
 
-This project `Vagrantfile` is developed based on [Anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
+This project uses `Vagrantfile` which is loosely based on [anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
 The `Vagrantfile.xenial` for Ubuntu Xenial __16.04__ __LTS__
-was recently added - use at own risk.
+was recently added - there a differences in openjdk/Oracle JDK availability for xenial and trusty.
 
 ### Usage
 
-Download the vagrant box images of Trusty [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64)
+Download the vagrant box images of
+Trusty [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64)
  or Xenial [vagrant-selenium](https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box)
-locally, name it `trusty-server-amd64-vagrant-selenium.box` / `xenial-server-amd64-vagrant-selenium.box` and place inside the `~/Downloads` or `$env:USERPROFILE\Downloads`.
+locally, name it `trusty-server-amd64-vagrant-selenium.box` and
+`xenial-server-amd64-vagrant-selenium.box` respectively and place inside the `Downloads` directory.
 
 Then run
 ```bash
@@ -38,7 +43,26 @@ export PROVISION_SELENIUM=true
 vagrant up
 ```
 Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driver can be set through the environment variables
-`SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`.
+`SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`:
+```bash
+export PROVISION_SELENIUM=true
+export SELENIUM_VERSION=3.14.0
+export USE_ORACLE_JAVA=true
+export CHOME_VERSION=48.0.2564.109
+export CHROMEDRIVER_VERSION=2.30
+vagrant up
+```
+
+To lookup the available choices of Chrome browser specific release e.g. __48__, run
+```sh
+ruby get_chrome_versions.rb -r 48
+```
+it will print:
+```Ruby
+["48.0.2564.109",
+ "http://www.slimjetbrowser.com/chrome/lnx/chrome64_48.0.2564.109.deb"]
+```
+and one can set the `CHROMEDRIVER_VERSION` to `48.0.2564.109`.
 
 Sampe supported combinations of legacy browser and driver versions are listed below.
 Note: this list is provided as an example, and is not maintained.
@@ -65,14 +89,15 @@ Note: this list is provided as an example, and is not maintained.
 | CHROME_VERSION       | 50.0.2661.75 |
 | CHROMEDRIVER_VERSION | 2.16         |
 
-For Chrome, the `CHROME_VERSION` can also set to `stable`, `unstable` or `beta` - forcing the `.deb` package of selected build of Chrome browser to be installed from the
+For Chrome, the `CHROME_VERSION` can also set to `stable`, `unstable` or `beta` - forcing the `.deb` package of
+the selected build of Chrome browser to be installed from the
 [google repository](https://www.google.com/linuxrepositories/).
 
 `Vagrantfile` automates the Chrome debian package download from
 [https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php).
 Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
 Note there is often few Chrome builds released with the same major, minor version like e.g. __69.0.3497.100__ vs. __69.0.3497.92__ and on
-slimjet one typically finds just one of those - therefore it is not recommended to use Slimjet with the most recent builds.
+slimjet one typically finds just one of those - therefore it is not recommended to use Slimjet with the very recent past builds.
 
 Internaly the chromedriver communicates with Chrome browser via [WebSockets DevTools debugging interface](https://stackoverflow.com/questions/44244505/how-chromedriver-is-communicating-internally-with-the-browser?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
 
@@ -85,7 +110,7 @@ For Ubuntu Trusty, one can switch to JDK 8 by setting the `USE_ORACLE_JAVA` envi
 ### Limitations
   * The hub is available on `http://127.0.0.1:4444/wd/hub/static/resource/hub.html` with some delay after the Virtual Box reboot - currently there is no visual cue on when the box is ready.
 
-  * If the screen resolution is too low, run the following command on the host
+  * If the screen size is too low, run the following command on the host
 ```bash
 vboxmanage controlvm "Selenium Fluxbox" setvideomodehint 1280 900 32
 ```
@@ -93,21 +118,22 @@ this currently works with trusty but not always with xenial base box in Virtual 
 
 ### Note Latest old Chrome builds
 
-The Chrome Build 70 is having multiple releases:
+The Chrome Build 70 had multiple releases:
   - `70.0.3538.110`
   - `70.0.3538.102`
   - `70.0.3538.77`
   - `70.0.3538.67`
-- not every build is available in slimjet.
+
+Not every build is available in slimjet.
 
 ### Work in Progress
 
- * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
- * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
- * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta), [lucidworks/browser-tester](https://github.com/lucidworks/browser-tester)
- * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel). More about using headless Chrome see
-   [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
- * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
+    * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
+    * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
+    * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta), [lucidworks/browser-tester](https://github.com/lucidworks/browser-tester)
+    * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel). More about using headless Chrome see
+    * [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
+    * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
 
 ### See also:
 
