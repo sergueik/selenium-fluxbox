@@ -24,6 +24,7 @@ debug = ENV.fetch('DEBUG', '')
 # Check if requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
 # TODO: embed the 'get_chrome_version.rb'
 available_chrome_versions = %w|
+  71.0.3578.80
   70.0.3538.77
   69.0.3497.92
   68.0.3440.84
