@@ -91,24 +91,23 @@ for server in "${!key_hash[@]}"; do sudo apt-key adv --keyserver "${server}" --r
 apt-get -qq update
 apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget libxml2-utils jq
 #=========================================================
-echo Install the OpenJDK 8 backport for trusty
-if false ; then
-  # installing the oracle 8 JDK from ppa:webupd8team/java still stops on Oracle Licence Agreement prompt
+USE_ORACLE_JAVA='#{use_oracle_java}'
+if  [ ! -z "${USE_ORACLE_JAVA}" ] ; then
+  echo 'Installing the oracle 8 JDK from ppa:webupd8team/java'
+  # does it still stops on Oracle Licence Agreement prompt
   # for alternative install set USE_ORACLE_JAVA
   add-apt-repository ppa:webupd8team/java -y
   apt-get -qq update
+  # origin: https://examples.javacodegeeks.com/devops/docker/docker-compose-example/
+  echo 'oracle-java8-installer shared/accepted-oracle-license-v1-1 boolean true' | debconf-set-selections
   apt-get -qqy install oracle-java8-installer
   apt-get -qqy install oracle-java8-set-default
-  # when installing from downloaded archive will also need
-  # update-alternatives --install /ust/bin/java /usr/lib/jvm/jdk-1.8.0_161/bin/java java 0
-  # update-alternatives --set java /usr/lib/jvm/jdk-1.8.0_161/bin/java
-  # update-alternatives --set javac /usr/lib/jvm/jdk-1.8.0_161/bin/javac
-
+else
+  add-apt-repository -y ppa:openjdk-r/ppa
+  apt-get -qqy update
+  apt-get install -qqy openjdk-8-jdk
+  update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 fi
-add-apt-repository -y ppa:openjdk-r/ppa
-apt-get -qqy update
-apt-get install -qqy openjdk-8-jdk
-update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 #=========================================================
 echo Set autologin for the Vagrant user
 sed -i '$ d' /etc/init/tty1.conf
@@ -295,16 +294,19 @@ if [[ $PROVISION_SELENIUM ]] ; then
     # https://www.digitalocean.com/community/tutorials/how-to-manually-install-oracle-java-on-a-debian-or-ubuntu-vps
     pushd /vagrant
     PACKAGE_ARCHIVE='jdk-linux-x64.tar.gz'
-    # need to accept the license interactively in http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html to browse
-    URL="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.tar.gz"
+    # In the past, needed to accept the license interactively in http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html to browse
+    # URL="http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.tar.gz"
+    URL="http://download.oracle.com/otn-pub/java/jdk/8u191-b12/2787e4a523244c269598db4e85c51e0c/jdk-8u191-linux-x64.tar.gz"
     wget -O $PACKAGE_ARCHIVE --header "Cookie: oraclelicense=accept-securebackup-cookie" -nv $URL
     mkdir /opt/oracle-jdk 2>/dev/null
     tar -zxf $PACKAGE_ARCHIVE -C /opt/oracle-jdk
-    update-alternatives --install /usr/bin/java java /opt/oracle-jdk/jdk1.8.0_161/bin/java 100
-    update-alternatives --set java /opt/oracle-jdk/jdk1.8.0_161/bin/java
-    update-alternatives --install /usr/bin/javac javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac 100
-    update-alternatives --set javac /opt/oracle-jdk/jdk1.8.0_161/bin/javac
-    popd
+    # When installing from downloaded archive will also set the path manually 
+    JAVA_INSTALL_DIR=$(find '/usr/lib/jvm/' -maxdepth 1 -type d -name '*oracle*' )
+    #
+    update-alternatives --install /ust/bin/java java "${JAVA_INSTALL_DIR}/bin/java" 100
+    update-alternatives --set java "${JAVA_INSTALL_DIR}/bin/java"
+    update-alternatives --install /ust/bin/javac javac "${JAVA_INSTALL_DIR}/bin/javac" 100
+    update-alternatives --set javac "${JAVA_INSTALL_DIR}/bin/javac"
   fi
 fi
 PROVISION_KATALON='#{provision_katalon}'
