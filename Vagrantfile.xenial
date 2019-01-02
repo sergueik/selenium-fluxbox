@@ -53,7 +53,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.box = 'ubuntu/xenial64'
   # Localy cached vagrant box image from https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box
-  # NOTE: vilnerable to time-consuming 
+  # NOTE: vilnerable to time-consuming
   # "intel_rapl: no valid rapl domains" message upon boot
   # in inital Vagrant run
   # https://askubuntu.com/questions/449574/intel-rapl-no-valid-rapl-domains-message-upon-boot
@@ -62,12 +62,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :forwarded_port, guest:4444, host:4444
   config.vm.network :private_network, ip: '192.168.33.12'
   config.vm.boot_timeout = 600
-  # NOTE: some Xenial images have the following problem out of the box
+  # NOTE: some Xenial images may have the following problem out of the box
   # sudo: unable to resolve host ubuntu-xenial
   # https://bugs.launchpad.net/ubuntu/+source/livecd-rootfs/+bug/1561250
   # NOTE daily ubuntu xenial images have no vagrant user
   # https://bugs.launchpad.net/cloud-images/+bug/1569237
-  config.vm.hostname = 'ubuntu-xenial'
+  config.vm.hostname = 'ubuntu-xenial64-fluxbox'
+  # gets cached in ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-xenial64-fluxbox/0/virtualbox
   # Configure common synced folder
   config.vm.synced_folder './' , '/vagrant'
   config.vm.provision 'shell', inline: <<-SHELL

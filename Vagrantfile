@@ -63,8 +63,9 @@ basedir = ENV.fetch('HOME','') || ENV.fetch('USERPROFILE', '')
 box_memory = ENV.fetch('BOX_MEMORY', '2048').to_i
 basedir = basedir.gsub('\\', '/')
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = 'ubuntu/trusty64'
+  config.vm.box = 'ubuntu/trusty64-fluxbox'
   # Localy cached vagrant box image from https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/14.04/providers/virtualbox.box
+  # gets cached in ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-trusty64-fluxbox/0/virtualbox
   # see also http://www.vagrantbox.es/ and http://dev.modern.ie/tools/vms/linux/
   config_vm_box_name = 'trusty-server-amd64-vagrant-selenium.box'
   config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
@@ -300,7 +301,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
     wget -O $PACKAGE_ARCHIVE --header "Cookie: oraclelicense=accept-securebackup-cookie" -nv $URL
     mkdir /opt/oracle-jdk 2>/dev/null
     tar -zxf $PACKAGE_ARCHIVE -C /opt/oracle-jdk
-    # When installing from downloaded archive will also set the path manually 
+    # When installing from downloaded archive will also set the path manually
     JAVA_INSTALL_DIR=$(find '/usr/lib/jvm/' -maxdepth 1 -type d -name '*oracle*' )
     #
     update-alternatives --install /ust/bin/java java "${JAVA_INSTALL_DIR}/bin/java" 100
