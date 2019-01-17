@@ -126,6 +126,17 @@ The Chrome Build 70 had multiple releases:
 
 Not every build is available in slimjet.
 
+
+###  Usage with Java projects
+A minimal example Java TestNG parallel run Selenium test project is provided in the `example` direcrory:
+
+![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/parallel-run-capture.png)
+
+It will further benefit from inegrating with [vagrant-maven-plugin](https://github.com/nicoulaj/vagrant-maven-plugin) 
+plugin and [simple-ssh](https://github.com/RationaleEmotions/SimpleSSH) jar e.g. to manage browsers and browser
+drivers in the Virtualbox after the test completion
+thru ssh using Vagrant-generated keys - this is work in progress.
+   
 ### Work in Progress
 
     * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
