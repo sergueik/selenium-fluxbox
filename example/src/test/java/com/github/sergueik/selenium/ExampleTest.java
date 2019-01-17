@@ -28,7 +28,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
@@ -41,6 +41,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -59,8 +60,12 @@ public class ExampleTest {
 	private static final boolean headless = Boolean
 			.parseBoolean(System.getenv("HEADLESS"));
 	private static final String searchString = "Тестовое задание";
-	@SuppressWarnings("unused")
-	private static String handle = null;
+
+	// You cannot use primitive types as generic type arguments.
+	//
+	private static ConcurrentHashMap<Long, WebDriver> drivers = new ConcurrentHashMap<Long, WebDriver>();
+
+	private static Boolean debug = false;
 
 	public int scriptTimeout = 5;
 	public int flexibleWait = 30;
@@ -69,7 +74,8 @@ public class ExampleTest {
 	@SuppressWarnings("unused")
 	private static long highlightInterval = 100;
 
-	// NOTE: pass distinct base url and locators to parallel tests for debugging
+	// NOTE: pass distinct base url, element locators to parallel tests for
+	// debugging
 	@DataProvider(name = "same-browser", parallel = true)
 	public Object[][] provideSameBrowser() throws Exception {
 		return new Object[][] {
@@ -104,48 +110,15 @@ public class ExampleTest {
 	public void googleSearch1Test(String browser, String baseURL,
 			String cssSelector) {
 
-		System.err.println("Launching " + browser + (remote ? " remotely" : ""));
-		System.setProperty(browserDriverSystemProperties.get(browser),
-				Paths.get(System.getProperty("user.home")).resolve("Downloads")
-						.resolve(browserDrivers.get(browser)).toAbsolutePath().toString());
-		if (browser.equals("chrome")) {
-			DesiredCapabilities capabilities = DesiredCapabilities.chrome();
-			ChromeOptions chromeOptions = new ChromeOptions();
-			// options for headless
-			if (headless) {
-				for (String optionAgrument : (new String[] { "headless",
-						"window-size=1200x800" })) {
-					chromeOptions.addArguments(optionAgrument);
-				}
-			}
-			capabilities
-					.setBrowserName(DesiredCapabilities.chrome().getBrowserName());
-			DriverWrapper.add(remote ? "remote" : "chrome", capabilities);
-		} else if (browser.equals("firefox")) {
-			System
-					.setProperty("webdriver.firefox.bin",
-							osName.equals("windows") ? new File(
-									"c:/Program Files (x86)/Mozilla Firefox/firefox.exe")
-											.getAbsolutePath()
-									: "/usr/bin/firefox");
-			DesiredCapabilities capabilities = DesiredCapabilities.firefox();
-			if (!remote) {
-				capabilities.setCapability("marionette", false);
-			}
-			DriverWrapper.add(remote ? "remote" : "firefox", capabilities);
-		}
-		DriverWrapper.setDebug(true);
+		WebDriver driver = getWebDriver(browser, remote);
 
-		System.err.println("Driver inventory: "
-				+ DriverWrapper.getDriverInventoryDump().toString());
-
-		WebDriver driver = DriverWrapper.current();
 		driver.get(baseURL);
 
-		System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
-				+ "Driver hash code: " + driver.hashCode() + "\n" + "Driver hash code: "
-				+ DriverWrapper.current().hashCode());
-
+		if (debug) {
+			System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
+					+ "Driver hash code: " + driver.hashCode() + "\n"
+					+ "Driver hash code: " + DriverWrapper.current().hashCode());
+		}
 		driver.get(baseURL);
 
 		Actions actions = new Actions(driver);
@@ -166,29 +139,123 @@ public class ExampleTest {
 
 		WebElement element = wait.until(ExpectedConditions
 				.visibilityOf(driver.findElement(By.cssSelector(cssSelector))));
-		System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
-				+ "Driver hash code: " + driver.hashCode() + "\n"
-				+ "WebDriveWait hash code: " + wait.hashCode() + "\n"
-				+ "Web Element hash code: " + element.hashCode());
+		if (debug) {
+			System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
+					+ "Driver hash code: " + driver.hashCode() + "\n"
+					+ "WebDriveWait hash code: " + wait.hashCode() + "\n"
+					+ "Web Element hash code: " + element.hashCode());
+		}
 		// TODO: element.setAttribute("value", searchString );
-		element.sendKeys(searchString /* + Keys.RETURN */);
+		element.sendKeys(searchString);
+		/*
+		element = wait.until(
+				ExpectedConditions.visibilityOf(driver.findElement(
+						By.xpath(String.format("//input[@name = '%s']", "btnK"))))); // [@type='submit']
+						click();
+						*/
 
 		element = wait.until(
 				// TODO; exercise locale - specific button assert "Поиск в Google" |
 				// "Google Search"
-				ExpectedConditions.visibilityOf(driver.findElement(By.xpath(String
-						.format("//input[contains(@value, '%s')]", "Google")))));
+				ExpectedConditions.visibilityOf(driver.findElement(By.xpath(
+						String.format("//input[contains(@value, '%s')]", "Google")))));
 		element.click();
 		element = wait.until(ExpectedConditions
 				.visibilityOf(driver.findElement(By.id("resultStats"))));
 		assertThat(element, notNullValue());
-		driver.close();
-		driver.quit();
 	}
 
 	@Test(enabled = false, dataProvider = "different-browser", threadPoolSize = 2)
 	public void googleSearch2Test(String browser, String baseURL,
 			String cssSelector) {
+
+		WebDriver driver = getWebDriver(browser, remote);
+
+		if (debug) {
+			System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
+					+ "Driver inventory: "
+					+ DriverWrapper.getDriverInventoryDump().toString() + "\n"
+					+ "Driver hash code: " + driver.hashCode());
+		}
+		driver.get(baseURL);
+		Actions actions = new Actions(driver);
+
+		driver.manage().timeouts().setScriptTimeout(scriptTimeout,
+				TimeUnit.SECONDS);
+
+		TakesScreenshot screenshot = ((TakesScreenshot) driver);
+		JavascriptExecutor js = ((JavascriptExecutor) driver);
+
+		WebDriverWait wait = new WebDriverWait(driver, flexibleWait);
+		wait.pollingEvery(Duration.ofMillis(pollingInterval));
+
+		driver.manage().timeouts().implicitlyWait(implicitWait, TimeUnit.SECONDS);
+
+		WebElement element = driver.findElement(By.cssSelector(cssSelector));
+		if (debug) {
+			System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
+					+ "Driver inventory: "
+					+ DriverWrapper.getDriverInventoryDump().toString() + "\n"
+					+ "Driver hash code: " + driver.hashCode() + "\n"
+					+ "Web Element hash code: " + element.hashCode());
+		}
+		element.sendKeys(searchString + Keys.RETURN);
+		element = wait.until(ExpectedConditions
+				.visibilityOf(driver.findElement(By.id("resultStats"))));
+		assertThat(element, notNullValue());
+		assertTrue(element.getText().matches("^.*\\b(?:\\d+)\\b.*$"));
+
+	}
+
+	@BeforeClass
+	public static void setUp() {
+		if (remote) {
+			DriverWrapper.setHubUrl("http://127.0.0.1:4444/wd/hub");
+		}
+	}
+
+	@AfterMethod
+	public void afterMethod() {
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+		}
+		// driver.get("about:blank");
+		for (Long threadId : drivers.keySet()) {
+			WebDriver driver = drivers.get(threadId);
+
+			if (driver != null) {
+				try {
+					driver.close();
+					driver.quit();
+					drivers.put(threadId, null);
+				} catch (NullPointerException e) {
+					System.err.println("Exception (ignored): " + e.getMessage());
+				} catch (Exception e) {
+					System.err.println(
+							"Exception (ignored): " + e.getClass() + " " + e.getMessage());
+				}
+			}
+		}
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		// SelenideLogger.removeListener("allure");
+	}
+
+	// Utilities
+	private static String getOSName() {
+		if (osName == null) {
+			osName = System.getProperty("os.name").toLowerCase();
+			if (osName.startsWith("windows")) {
+				osName = "windows";
+			}
+		}
+		return osName;
+	}
+
+	private WebDriver getWebDriver(String browser, Boolean remote) {
 
 		System.err.println("Launching " + browser + (remote ? " remotely" : ""));
 		System.setProperty(browserDriverSystemProperties.get(browser),
@@ -220,87 +287,13 @@ public class ExampleTest {
 			}
 			DriverWrapper.add(remote ? "remote" : "firefox", capabilities);
 		}
-		DriverWrapper.setDebug(true);
+		DriverWrapper.setDebug(debug);
+		if (debug) {
+			System.err.println("Driver inventory: "
+					+ DriverWrapper.getDriverInventoryDump().toString());
+		}
 		WebDriver driver = DriverWrapper.current();
-		System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
-				+ "Driver inventory: "
-				+ DriverWrapper.getDriverInventoryDump().toString() + "\n"
-				+ "Driver hash code: " + driver.hashCode());
-
-		driver.get(baseURL);
-		Actions actions = new Actions(driver);
-
-		driver.manage().timeouts().setScriptTimeout(scriptTimeout,
-				TimeUnit.SECONDS);
-
-		TakesScreenshot screenshot = ((TakesScreenshot) driver);
-		JavascriptExecutor js = ((JavascriptExecutor) driver);
-
-		WebDriverWait wait = new WebDriverWait(driver, flexibleWait);
-		wait.pollingEvery(Duration.ofMillis(pollingInterval));
-
-		driver.manage().timeouts().implicitlyWait(implicitWait, TimeUnit.SECONDS);
-
-		WebElement element = driver.findElement(By.cssSelector(cssSelector));
-		System.err.println("Thread id: " + Thread.currentThread().getId() + "\n"
-				+ "Driver inventory: "
-				+ DriverWrapper.getDriverInventoryDump().toString() + "\n"
-				+ "Driver hash code: " + driver.hashCode() + "\n"
-				+ "Web Element hash code: " + element.hashCode());
-
-		element.sendKeys(searchString  /* + Keys.RETURN */);
-		element = wait.until(
-				// TODO; exercise culture // Поиск в Google | Google Search
-				ExpectedConditions.visibilityOf(driver.findElement(
-						By.xpath(String.format("//input[@name = '%s']", "btnK"))))); // [@type='submit']
-																																					// ?
-		element.click();
-		element = wait.until(ExpectedConditions
-				.visibilityOf(driver.findElement(By.id("resultStats"))));
-		assertThat(element, notNullValue());
-		assertTrue(element.getText().matches("^.*\\b(?:\\d+)\\b.*$"));
-		driver.close();
-		driver.quit();
-	}
-
-	@BeforeClass
-	public static void setUp() {
-		if (remote) {
-			DriverWrapper.setHubUrl("http://127.0.0.1:4444/wd/hub");
-		}
-	}
-
-	@AfterMethod
-	public void afterMethod() {
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e1) {
-		}
-		// driver.get("about:blank");
-		/*
-		if (driver != null) {
-			try {
-				driver.close();
-				driver.quit();
-			} catch (Exception e) {
-			}
-		}
-		*/
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		// SelenideLogger.removeListener("allure");
-	}
-
-	// Utilities
-	public static String getOSName() {
-		if (osName == null) {
-			osName = System.getProperty("os.name").toLowerCase();
-			if (osName.startsWith("windows")) {
-				osName = "windows";
-			}
-		}
-		return osName;
+		drivers.put(Thread.currentThread().getId(), driver);
+		return driver;
 	}
 }
