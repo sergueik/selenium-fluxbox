@@ -51,6 +51,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.rationaleemotions.ExecutionBuilder;
+import com.rationaleemotions.SshKnowHow;
+import com.rationaleemotions.pojo.ExecResults;
+import com.rationaleemotions.pojo.SSHUser;
+
 // based on: https://github.com/sergueik/selenium_tests/blob/master/src/test/java/com/github/sergueik/selenium/ParallelMultiBrowserTest.java
 // based on https://github.com/tw1911/test1/blob/master/src/test/java/com/tw1911/test1/GoogleSearchTests.java
 public class ExampleTest {
@@ -61,8 +66,7 @@ public class ExampleTest {
 			.parseBoolean(System.getenv("HEADLESS"));
 	private static final String searchString = "Тестовое задание";
 
-	// You cannot use primitive types as generic type arguments.
-	//
+	// NOTE: cannot use primitive types as generic type arguments.
 	private static ConcurrentHashMap<Long, WebDriver> drivers = new ConcurrentHashMap<Long, WebDriver>();
 
 	private static Boolean debug = false;
@@ -73,6 +77,16 @@ public class ExampleTest {
 	public int pollingInterval = 500;
 	@SuppressWarnings("unused")
 	private static long highlightInterval = 100;
+	private static String browserExecutable;
+
+	private static final Map<String, String> browserDrivers = new HashMap<>();
+	static {
+		browserDrivers.put("chrome",
+				osName.equals("windows") ? "chromedriver.exe" : "chromedriver");
+		browserDrivers.put("firefox",
+				osName.equals("windows") ? "geckodriver.exe" : "geckodriver");
+		browserDrivers.put("edge", "MicrosoftWebDriver.exe");
+	}
 
 	// NOTE: pass distinct base url, element locators to parallel tests for
 	// debugging
@@ -88,15 +102,6 @@ public class ExampleTest {
 		return new Object[][] {
 				{ "chrome", "https://www.google.com/?hl=ru", "input[name*='q']" },
 				{ "firefox", "https://www.google.com/?hl=ko", "input[name='q']" }, };
-	}
-
-	private static final Map<String, String> browserDrivers = new HashMap<>();
-	static {
-		browserDrivers.put("chrome",
-				osName.equals("windows") ? "chromedriver.exe" : "chromedriver");
-		browserDrivers.put("firefox",
-				osName.equals("windows") ? "geckodriver.exe" : "geckodriver");
-		browserDrivers.put("edge", "MicrosoftWebDriver.exe");
 	}
 
 	private static final Map<String, String> browserDriverSystemProperties = new HashMap<>();
@@ -209,7 +214,7 @@ public class ExampleTest {
 
 	@BeforeClass
 	public static void setUp() {
-		if (remote) {
+			if (remote) {
 			DriverWrapper.setHubUrl("http://127.0.0.1:4444/wd/hub");
 		}
 	}
@@ -239,8 +244,15 @@ public class ExampleTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@AfterClass
+	// Can inject only one of <ITestContext, XmlTest> into a AfterClass annotated
+	// method
 	public static void tearDown() {
+		String browser = "chrome";
+		killRemoteProcess(getBrowserExecutable(browser, true));
+		killRemoteProcess(getBrowserDriverExecutable(browser, true));
+
 		// SelenideLogger.removeListener("allure");
 	}
 
@@ -271,16 +283,37 @@ public class ExampleTest {
 					chromeOptions.addArguments(optionAgrument);
 				}
 			}
+
+			if (osName.equals("windows")) {
+				browserExecutable = "chrome.exe";
+				if (System.getProperty("os.arch").contains("64")) {
+					String[] paths = new String[] {
+							"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+							"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" };
+					// check file existence
+					for (String path : paths) {
+						File exe = new File(path);
+						System.err.println("Inspecting browser path: " + path);
+						if (exe.exists()) {
+							chromeOptions.setBinary(path);
+						}
+					}
+				} else {
+					chromeOptions.setBinary(
+							"c:\\Program Files\\Google\\Chrome\\Application\\chrome.exe");
+				}
+			} else {
+				browserExecutable = "google-chrome-stable";
+			}
 			capabilities
 					.setBrowserName(DesiredCapabilities.chrome().getBrowserName());
 			DriverWrapper.add(remote ? "remote" : "chrome", capabilities);
 		} else if (browser.equals("firefox")) {
-			System
-					.setProperty("webdriver.firefox.bin",
-							osName.equals("windows") ? new File(
-									"c:/Program Files (x86)/Mozilla Firefox/firefox.exe")
-											.getAbsolutePath()
-									: "/usr/bin/firefox");
+			browserExecutable = osName.equals("windows")
+					? new File("c:/Program Files (x86)/Mozilla Firefox/firefox.exe")
+							.getAbsolutePath()
+					: "/usr/bin/firefox";
+			System.setProperty("webdriver.firefox.bin", browserExecutable);
 			DesiredCapabilities capabilities = DesiredCapabilities.firefox();
 			if (!remote) {
 				capabilities.setCapability("marionette", false);
@@ -296,4 +329,59 @@ public class ExampleTest {
 		drivers.put(Thread.currentThread().getId(), driver);
 		return driver;
 	}
+
+	// will be incorrect for development on Windows machine
+	// and testing in Vagrant Virtual Box Linux machine
+	public static String getBrowserExecutable(String browser, Boolean remote) {
+		String browserExecutable = null;
+		if (browser.equals("chrome")) {
+			if (remote) {
+				browserExecutable = "google-chrome-stable";
+			} else {
+				if (osName.equals("windows")) {
+					browserExecutable = "chrome.exe";
+				} else {
+					browserExecutable = "google-chrome-stable";
+				}
+			}
+		} else if (browser.equals("firefox")) {
+			if (remote) {
+				browserExecutable = "firefox";
+			} else {
+				browserExecutable = osName.equals("windows") ? "firefox.exe"
+						: "firefox";
+			}
+		}
+
+		return browserExecutable;
+	}
+
+	public static String getBrowserDriverExecutable(String browser,
+			Boolean remote) {
+		if (remote) {
+			return browser.matches("chrome") ? "chromedriver" : "geckodriver";
+		} else {
+			return browserDrivers.get(browser);
+		}
+	}
+
+	// origin: https://github.com/rationaleemotions/simplessh
+	// NOTE: dispatches the actual work to
+	// https://github.com/torquebox/jruby-maven-plugins/blob/master/ruby-tools/src/main/java/de/saumya/mojo/ruby/script/Script.java
+	// that may not be the fast way of doing it
+	public static void killRemoteProcess(String processName) {
+		// IdentityFile C:/Vagrant/.vagrant/machines/default/virtualbox/private_key
+		String command = String.format("killall %s", processName.trim());
+		SSHUser sshUser = new SSHUser.Builder().forUser("vagrant")
+				.withSshFolder(
+						new File("C:/Vagrant/.vagrant/machines/default/virtualbox"))
+				.usingPrivateKey(new File(
+						"C:/Vagrant/.vagrant/machines/default/virtualbox/private_key"))
+				.build();
+		SshKnowHow ssh = new ExecutionBuilder().connectTo("127.0.0.1").onPort(2222)
+				.includeHostKeyChecks(false).usingUserInfo(sshUser).build();
+
+		ExecResults results = ssh.executeCommand(command);
+	}
+
 }

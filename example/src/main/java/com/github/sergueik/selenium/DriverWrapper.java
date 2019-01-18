@@ -79,11 +79,6 @@ public class DriverWrapper extends RemoteWebDriver {
 	}
 
 	public static RemoteWebDriver current() {
-		if (debug) {
-			System.err.println("Looking inventory by key: " + getThreadName() + "\n"
-					+ " => " + driverInventory.get(getThreadName()).getClass() + " "
-					+ driverInventory.get(getThreadName()).hashCode());
-		}
 		return driverInventory.get(getThreadName());
 	}
 
