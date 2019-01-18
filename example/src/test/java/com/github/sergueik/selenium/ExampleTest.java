@@ -10,10 +10,14 @@ import static org.hamcrest.CoreMatchers.nullValue;
 
 import org.hamcrest.MatcherAssert;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 //reserved for turning on Selenide and Allure
@@ -26,8 +30,10 @@ import java.nio.file.Paths;
 // https://seleniumhq.github.io/selenium/docs/api/java/org/openqa/selenium/support/ui/FluentWait.html#pollingEvery-java.time.Duration-
 // NOTE: needs java.time.Duration not the org.openqa.selenium.support.ui.Duration;
 import java.time.Duration;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -214,7 +220,7 @@ public class ExampleTest {
 
 	@BeforeClass
 	public static void setUp() {
-			if (remote) {
+		if (remote) {
 			DriverWrapper.setHubUrl("http://127.0.0.1:4444/wd/hub");
 		}
 	}
@@ -370,18 +376,85 @@ public class ExampleTest {
 	// https://github.com/torquebox/jruby-maven-plugins/blob/master/ruby-tools/src/main/java/de/saumya/mojo/ruby/script/Script.java
 	// that may not be the fast way of doing it
 	public static void killRemoteProcess(String processName) {
-		// IdentityFile C:/Vagrant/.vagrant/machines/default/virtualbox/private_key
+		String identityFile = getPropertyEnv("IdentityFile",
+				"C:/Vagrant/.vagrant/machines/default/virtualbox/private_key");
+		String hostName = getPropertyEnv("HostName", "127.0.0.1");
+		String sshFolder = identityFile.replaceAll("/[^/]+$", "");
+		String user = getPropertyEnv("User", "vagrant");
+		int port = Integer.parseInt(getPropertyEnv("Port", "2222"));
 		String command = String.format("killall %s", processName.trim());
-		SSHUser sshUser = new SSHUser.Builder().forUser("vagrant")
-				.withSshFolder(
-						new File("C:/Vagrant/.vagrant/machines/default/virtualbox"))
-				.usingPrivateKey(new File(
-						"C:/Vagrant/.vagrant/machines/default/virtualbox/private_key"))
-				.build();
-		SshKnowHow ssh = new ExecutionBuilder().connectTo("127.0.0.1").onPort(2222)
+		SSHUser sshUser = new SSHUser.Builder().forUser(user)
+				.withSshFolder(new File(sshFolder))
+				.usingPrivateKey(new File(identityFile)).build();
+		SshKnowHow ssh = new ExecutionBuilder().connectTo(hostName).onPort(port)
 				.includeHostKeyChecks(false).usingUserInfo(sshUser).build();
 
 		ExecResults results = ssh.executeCommand(command);
 	}
 
+	private static String propertiesFileName = "vagarant.properties";
+
+	// https://github.com/TsvetomirSlavov/wdci/blob/master/code/src/main/java/com/seleniumsimplified/webdriver/manager/EnvironmentPropertyReader.java
+	public static String getPropertyEnv(String name, String defaultValue) {
+		Map<String, String> propertiesMap = getProperties(
+				String.format("%s/src/test/resources/%s",
+						System.getProperty("user.dir"), propertiesFileName));
+
+		String value = propertiesMap.get(name);
+		if (value == null) {
+			System.getProperty(name);
+			if (value == null) {
+				value = System.getenv(name);
+				if (value == null) {
+					value = defaultValue;
+				}
+			}
+		}
+		return value;
+	}
+
+	public static Map<String, String> getProperties(final String fileName) {
+		Properties p = new Properties();
+		Map<String, String> propertiesMap = new HashMap<>();
+		// System.err.println(String.format("Reading properties file: '%s'",
+		// fileName));
+		try {
+			p.load(new FileInputStream(fileName));
+			@SuppressWarnings("unchecked")
+			Enumeration<String> e = (Enumeration<String>) p.propertyNames();
+			for (; e.hasMoreElements();) {
+				String key = e.nextElement();
+				String val = p.get(key).toString();
+				System.out.println(String.format("Reading: '%s' = '%s'", key, val));
+				propertiesMap.put(key, resolveEnvVars(val));
+			}
+
+		} catch (FileNotFoundException e) {
+			System.err.println(
+					String.format("Properties file was not found: '%s'", fileName));
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println(
+					String.format("Properties file is not readable: '%s'", fileName));
+			e.printStackTrace();
+		}
+		return (propertiesMap);
+	}
+
+	public static String resolveEnvVars(String input) {
+		if (null == input) {
+			return null;
+		}
+		Pattern p = Pattern.compile("\\$(?:\\{(\\w+)\\}|(\\w+))");
+		Matcher m = p.matcher(input);
+		StringBuffer sb = new StringBuffer();
+		while (m.find()) {
+			String envVarName = null == m.group(1) ? m.group(2) : m.group(1);
+			String envVarValue = System.getenv(envVarName);
+			m.appendReplacement(sb,
+					null == envVarValue ? "" : envVarValue.replace("\\", "\\\\"));
+		}
+		m.appendTail(sb);
+		return sb.toString();
+	}
 }
