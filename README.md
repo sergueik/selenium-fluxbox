@@ -6,8 +6,10 @@ containing
  * [Fluxbox](https://wiki.debian.org/FluxBox)
  * [tmux](https://github.com/tmux/tmux) autologin
  * User-specified version of Selenium ( __3.x__ or legacy __2.53__ )
- * Chrome with Chrome Driver
- * Firefox with Gecko Driver
+ * Chrome
+ * Chrome Driver
+ * Firefox
+ * Gecko Driver
 
 The 'bleeding edge' versions of the drivers sometimes don't work well together, e.g. through errors like:
 `org.openqa.selenium.WebDriverException: unknown error: Chrome version must be >= 52.0.2743.0 ...`
@@ -129,16 +131,18 @@ A minimal example Java TestNG parallel run Selenium test project is provided in 
 
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/parallel-run-capture.png)
 
-It will further benefit from inegrating with [vagrant-maven-plugin](https://github.com/nicoulaj/vagrant-maven-plugin) 
+It will further benefit from inegrating with [vagrant-maven-plugin](https://github.com/nicoulaj/vagrant-maven-plugin)
 plugin and [simple-ssh](https://github.com/RationaleEmotions/SimpleSSH) jar e.g. to manage browsers and browser
 drivers in the Virtualbox after the test completion
 thru ssh using Vagrant-generated keys - this is work in progress.
 
 one can find the key file location from Vagrant by running the command
-"C:\HashiCorp\Vagrant\bin\vagrant.exe ssh-config"
 
-It would print something like
+```cmd
+C:\HashiCorp\Vagrant\bin\vagrant.exe ssh-config
 ```
+It would print something like
+```sh
 Host default
   HostName 127.0.0.1
   User vagrant
@@ -146,33 +150,36 @@ Host default
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   PasswordAuthentication no
-  IdentityFile C:/Vagrant/.vagrant/machines/default/virtualbox/private_key
+	
   IdentitiesOnly yes
   LogLevel FATAL	
 ```
-but only when the VM was launched by Vagrant, not directly through Virtual Box UI. 
-Therefore it seems best to cache in the project properties. 
-   
+but only if the Virtual Box VM was launched by vagrant, it will refuse to give this information e.g.
+if VM was launched through Virtual Box UI directly.
+
+
 ### Work in Progress
 
-  * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
-  * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
-  * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta), [lucidworks/browser-tester](https://github.com/lucidworks/browser-tester)
-  * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel)
-  * [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome)
-  * [headless README](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
-  * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
+    * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
+    * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
+    * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta), [lucidworks/browser-tester](https://github.com/lucidworks/browser-tester)
+    * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel). More about using headless Chrome see
+    * [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
+    * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
 
 ### See also:
 
  * [Google Chrome Old Versions - for Windows only](https://google_chrome.en.downloadastro.com/old_versions/)
  * [Selected old versions](https://google-chrome.en.uptodown.com/ubuntu/old)
  * [Chromium old builds for Ubuntu](https://www.ubuntuupdates.org/pm/google-chrome-stable)
- * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) - controls (to a certain extent) the browserdriver and browser versons.
+ * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) - this project allows the Java test suite to control (to a certain extent) the verson of the browserdriver for a selection of browsers.
  * [how to disable Chrome Browser auto update](https://stackoverflow.com/questions/18483087/how-to-disable-google-chrome-auto-update)
  * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
  * [examples and documentation](https://www.codota.com/code/java/classes/de.saumya.mojo.ruby.script.ScriptFactory)
- * implementation detils of [vagrant-maven-plugin](https://github.com/nicoulaj/vagrant-maven-plugin/blob/master/src/main/java/net/nicoulaj/maven/plugins/vagrant/AbstractVagrantMojo.java) `cli`.
+ * [parallel testing testng framerowk](https://github.com/CybertekSchool/parallel-multi-browser-testng-framework) - note utility code redundant across various projects of that author.
+
+### License
+This project is licensed under the terms of the MIT license.
 
 ### Author
 [Serguei Kouzmine](kouzmine_serguei@yahoo.com)
