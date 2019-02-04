@@ -51,7 +51,7 @@ box_memory = ENV.fetch('BOX_MEMORY', '2048').to_i
 basedir = basedir.gsub('\\', '/')
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  config.vm.box = 'ubuntu/xenial64'
+  config.vm.box = 'ubuntu/xenial64-fluxbox'
   # Localy cached vagrant box image from https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box
   # NOTE: vilnerable to time-consuming
   # "intel_rapl: no valid rapl domains" message upon boot
