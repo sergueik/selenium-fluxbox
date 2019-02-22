@@ -1,3 +1,11 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'fileutils'
+require 'find'
+require 'pathname'
+require 'pp'
+
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 selenium_version = ENV.fetch('SELENIUM_VERSION', '3.14.0')
 chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '2.44')
@@ -5,6 +13,12 @@ firefox_version = ENV.fetch('FIREFOX_VERSION', '63.0.1')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 # experimental
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
+
+# Automatically download box into ~/Downloads. useful to upgrade base box
+box_download = ENV.fetch('BOX_DOWNLOAD', '')
+box_download = (box_download =~ (/^(true|t|yes|y|1)$/i))
+debug = ENV.fetch('DEBUG', '')
+debug = (debug =~ (/^(true|t|yes|y|1)$/i))
 
 # ensure the requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
 # TODO: embed 'get_chrome_version.rb'
@@ -52,13 +66,25 @@ basedir = basedir.gsub('\\', '/')
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.box = 'ubuntu/xenial64-fluxbox'
-  # Localy cached vagrant box image from https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box
+  # Localy cached vagrant box image 
+  version = '0.2.1'
+  config_vm_box_name = 'xenial-server-amd64-vagrant-selenium.box'
+  config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
+  box_download_url = "https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/#{version}/providers/virtualbox.box"
+  box_filepath = config.vm.box_url.gsub(Regexp.new('^file://'),'')
+  if box_download
+    # pp box_download	
+    if File.exist?(box_filepath)
+      $stderr.puts (box_filepath + ' already downloaded. Remove to re-download')
+    else  status = true
+      $stderr.puts "Downloading #{box_download_url} to #{box_filepath}"
+      %x|curl -k -L #{box_download_url} -o #{box_filepath}|
+    end
+  end
   # NOTE: vilnerable to time-consuming
   # "intel_rapl: no valid rapl domains" message upon boot
   # in inital Vagrant run
   # https://askubuntu.com/questions/449574/intel-rapl-no-valid-rapl-domains-message-upon-boot
-  config_vm_box_name = 'xenial-server-amd64-vagrant-selenium.box'
-  config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
   config.vm.network :forwarded_port, guest:4444, host:4444
   config.vm.network :private_network, ip: '192.168.33.12'
   config.vm.boot_timeout = 600

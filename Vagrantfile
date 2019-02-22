@@ -78,7 +78,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
   # Localy cached vagrant box image
   version = '14.04'
-  # version = 'v20190206.0.0'
+  version = '20190206.0.0'
   # NOTE: curl --head -k $URL
   # does not always show the size (Content-Length header) of the box file.
   # e.g. Vagrantcloud does not.
@@ -87,7 +87,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if box_download
     # pp box_download	
     if File.exist?(box_filepath)
-      $stderr.puts (box_filepath + ' already downlowaded. Remove to re-download')
+      $stderr.puts (box_filepath + ' already downloaded. Remove to re-download')
     else  status = true
       $stderr.puts "Downloading #{box_download_url} to #{box_filepath}"
       %x|curl -k -L #{box_download_url} -o #{box_filepath}|
