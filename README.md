@@ -42,6 +42,12 @@ Then run
 export PROVISION_SELENIUM=true
 vagrant up
 ```
+For downloading box for the very first time into `Downloads` directory add the following setting:
+```
+export BOX_DOWNLOAD=true
+export PROVISION_SELENIUM=true
+vagrant up
+```
 Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driver can be set through the environment variables
 `SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`:
 ```bash
@@ -96,8 +102,12 @@ the selected build of Chrome browser to be installed from the
 `Vagrantfile` automates the Chrome debian package download from
 [https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php).
 Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
-Note there is often few Chrome builds released with the same major, minor version like e.g. __69.0.3497.100__ vs. __69.0.3497.92__ and on
-slimjet one typically finds just one of those - therefore it is not recommended to use Slimjet with the very recent past builds.
+Note the Chrome browser is often  re-released over time with the same major and minor version like
+e.g. __69.0.3497.100__ vs. __69.0.3497.92__
+builds __72.0.3626.68__  vs __72.0.3626.96__
+and so on, with major version number bums relatively unfrequent.
+The build one can find on slimjet is not always the very latest one of those -
+therefore it is not recommended to use Slimjet with the very recent past builds.
 
 Internaly the chromedriver communicates with Chrome browser via [WebSockets DevTools debugging interface](https://stackoverflow.com/questions/44244505/how-chromedriver-is-communicating-internally-with-the-browser?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
 
@@ -177,6 +187,7 @@ if VM was launched through Virtual Box UI directly.
  * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
  * [examples and documentation](https://www.codota.com/code/java/classes/de.saumya.mojo.ruby.script.ScriptFactory)
  * [parallel testing testng framerowk](https://github.com/CybertekSchool/parallel-multi-browser-testng-framework) - note utility code redundant across various projects of that author.
+ * [the Chromium Projects](https://www.chromium.org/getting-involved/download-chromium)
 
 ### License
 This project is licensed under the terms of the MIT license.
