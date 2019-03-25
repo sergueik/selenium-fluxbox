@@ -104,8 +104,7 @@ the selected build of Chrome browser to be installed from the
 Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
 Note the Chrome browser is often  re-released over time with the same major and minor version like
 e.g. __69.0.3497.100__ vs. __69.0.3497.92__
-builds __72.0.3626.68__  vs __72.0.3626.96__
-and so on, with major version number bums relatively unfrequent.
+builds __72.0.3626.68__  vs. __72.0.3626.96__ vs. __72.0.3626.109__ vs. __72.0.3626.119__ and so on, with major version number bums relatively unfrequent.
 The build one can find on slimjet is not always the very latest one of those -
 therefore it is not recommended to use Slimjet with the very recent past builds.
 
@@ -176,6 +175,7 @@ if VM was launched through Virtual Box UI directly.
     * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel). More about using headless Chrome see
     * [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
     * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
+    * desktop shortcut generation e.g. [example](https://github.com/regaur/puppeteer/blob/master/puppeteer.install) for ArchLinux, chromium puppeteer
 
 ### See also:
 
@@ -188,6 +188,10 @@ if VM was launched through Virtual Box UI directly.
  * [examples and documentation](https://www.codota.com/code/java/classes/de.saumya.mojo.ruby.script.ScriptFactory)
  * [parallel testing testng framerowk](https://github.com/CybertekSchool/parallel-multi-browser-testng-framework) - note utility code redundant across various projects of that author.
  * [the Chromium Projects](https://www.chromium.org/getting-involved/download-chromium)
+ * Chromium [Puppeteer](https://github.com/GoogleChrome/puppeteer) - headless [Dockerfile](https://github.com/landaida/puppeteer/blob/master/Dockerfile) for Debian-based box.
+ * [Puppeteer](https://github.com/GoogleChrome/puppeteer) visual [recorder](https://github.com/euprogramador/puppeteer-screen-recorder) with Xvfb, standalone
+ * [Puppeteer](https://github.com/GoogleChrome/puppeteer) example [tests](https://github.com/checkly/puppeteer-examples)
+ * Puppeteer web scraping [tutorial](https://github.com/emadehsan/thal)
 
 ### License
 This project is licensed under the terms of the MIT license.
