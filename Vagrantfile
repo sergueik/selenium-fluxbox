@@ -3,12 +3,14 @@
 
 require 'fileutils'
 require 'find'
+require 'json'
+require 'net/http'
 require 'pathname'
 require 'pp'
 
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 
-# This verison of Vagrantfile has various "alternative" commands many of which do not work removed temporarily.
+# This verison of Vagrantfile removes various "alternative" commands many of which do not work
 # Please refer to Vagrantfile.OLD for those command details.
 
 selenium_version = ENV.fetch('SELENIUM_VERSION', '3.14.0')
@@ -18,8 +20,8 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
-# experimental, Katalon Studio for Linux (Console Mode)
-# NOTE: only OpenJDK 8 - not the Oracle JDK - is supported
+# experimental: install Katalon Studio for Linux
+# NOTE: Katalon Studio requires that OpenJDK 8 - not the Oracle JDK - is installed 
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
@@ -29,7 +31,8 @@ box_download = (box_download =~ (/^(true|t|yes|y|1)$/i))
 debug = ENV.fetch('DEBUG', '')
 debug = (debug =~ (/^(true|t|yes|y|1)$/i))
 
-# Check if requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
+# Examine that specific Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
+# NOTE: the latest available Chome build is 71. 
 # TODO: embed the 'get_chrome_version.rb'
 available_chrome_versions = %w|
   71.0.3578.80
@@ -62,7 +65,7 @@ chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
 
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION should be set to "stable", "unstable" "dev" or "beta"'
-  puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php:\n" + available_chrome_versions.join("\n")
+  puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php\n" + available_chrome_versions.join("\n")
   exit
 end
 
@@ -79,6 +82,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Localy cached vagrant box image
   version = '14.04'
   version = '20190206.0.0'
+  # NOTE: the https://superuser.com/questions/747699/vagrant-box-url-for-json-metadata-file - the metadata.json should be loaded as directory index, not explicitly
+  metadata_response = Net::HTTP.get_response('https://vagrantcloud.com/ubuntu/boxes/trusty64', '/')
+  metadata_obj = JSON.parse(metadata_response)
   # NOTE: curl --head -k $URL
   # does not always show the size (Content-Length header) of the box file.
   # e.g. Vagrantcloud does not.
@@ -101,7 +107,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision 'shell', inline: <<-END_OF_PROVISION
 #!/bin/bash
 DEBUG='#{debug}'
-if [[ -z $DEBUG ]] ; then
+if [[ ! -z $DEBUG ]] ; then
 set -x
 fi
 

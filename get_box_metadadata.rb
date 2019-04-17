@@ -34,5 +34,5 @@ if @debug
   pp response.body
 end
 metadata = JSON.parse(response.body)
-pp metadata
+# pp metadata
 pp metadata['versions'][0]['version']

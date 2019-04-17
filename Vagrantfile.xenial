@@ -8,10 +8,13 @@ require 'pp'
 
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 selenium_version = ENV.fetch('SELENIUM_VERSION', '3.14.0')
+# 
 chromedriver_version = ENV.fetch('CHROMEDRIVER_VERSION', '2.44')
 firefox_version = ENV.fetch('FIREFOX_VERSION', '63.0.1')
 geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
-# experimental
+
+# experimental: install Katalon Studio for Linux
+# NOTE: Katalon Studio requires that OpenJDK 8 - not the Oracle JDK - is installed 
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 
 # Automatically download box into ~/Downloads. useful to upgrade base box
@@ -20,8 +23,9 @@ box_download = (box_download =~ (/^(true|t|yes|y|1)$/i))
 debug = ENV.fetch('DEBUG', '')
 debug = (debug =~ (/^(true|t|yes|y|1)$/i))
 
-# ensure the requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
-# TODO: embed 'get_chrome_version.rb'
+# Examine that specific Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
+# NOTE: the latest available Chome build is 71. 
+# TODO: embed the 'get_chrome_version.rb'
 available_chrome_versions = %w|
   71.0.3578.80
   70.0.3538.77
@@ -204,6 +208,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
     case $CHROME_VERSION in
       beta|stable|unstable)
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        apt-get install -qqy software-properties-common
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
         apt-get install google-chrome-${CHROME_VERSION}

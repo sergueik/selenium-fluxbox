@@ -108,6 +108,8 @@ builds __72.0.3626.68__  vs. __72.0.3626.96__ vs. __72.0.3626.109__ vs. __72.0.3
 The build one can find on slimjet is not always the very latest one of those -
 therefore it is not recommended to use Slimjet with the very recent past builds.
 
+Note: slimject appears to stop hosting past Chrome browser packages after build __71.0.3578.80__.
+
 Internaly the chromedriver communicates with Chrome browser via [WebSockets DevTools debugging interface](https://stackoverflow.com/questions/44244505/how-chromedriver-is-communicating-internally-with-the-browser?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
 
 Note that the actual download directory `http://www.slimjetbrowser.com/chrome/lnx/` is not directly browsable.
@@ -181,8 +183,10 @@ if VM was launched through Virtual Box UI directly.
 
  * [Google Chrome Old Versions - for Windows only](https://google_chrome.en.downloadastro.com/old_versions/)
  * [Selected old versions](https://google-chrome.en.uptodown.com/ubuntu/old)
- * [Chromium old builds for Ubuntu](https://www.ubuntuupdates.org/pm/google-chrome-stable)
- * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) - this project allows the Java test suite to control (to a certain extent) the verson of the browserdriver for a selection of browsers.
+ * [chromium old builds for Ubuntu](https://www.ubuntuupdates.org/pm/google-chrome-stable)
+ * [table](http://chromedriver.chromium.org/downloads) of matching Chromedriver and Chrome browser versions
+ * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) allows the Java test suite to specify the browser driver verson for all standard browsers.
+ * [abhishek8908/selenium-drivers-download-plugin](https://github.com/abhishek8908/selenium-drivers-download-plugin) maven plugin which downloads specific versions of chromedriver, iedriverServer, edge or geckodriver by executing a specific custom goal `generateDrivers` during maven life cycle.
  * [how to disable Chrome Browser auto update](https://stackoverflow.com/questions/18483087/how-to-disable-google-chrome-auto-update)
  * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
  * [examples and documentation](https://www.codota.com/code/java/classes/de.saumya.mojo.ruby.script.ScriptFactory)
