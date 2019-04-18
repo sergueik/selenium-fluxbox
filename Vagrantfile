@@ -228,7 +228,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
         # GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
-        apt-get install google-chrome-${CHROME_VERSION}
+        apt-get install -qy --allow-unauthenticated google-chrome-${CHROME_VERSION}
       ;;
       *)
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -

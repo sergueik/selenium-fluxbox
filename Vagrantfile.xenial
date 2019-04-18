@@ -211,7 +211,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
         apt-get install -qqy software-properties-common
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
-        apt-get install google-chrome-${CHROME_VERSION}
+        apt-get install -qy --allow-unauthenticated google-chrome-${CHROME_VERSION}
       ;;
       *)
         apt-get remove -qqy -f google-chrome-stable
