@@ -35,6 +35,7 @@ debug = (debug =~ (/^(true|t|yes|y|1)$/i))
 # NOTE: the latest available Chome build is 71. 
 # TODO: embed the 'get_chrome_version.rb'
 available_chrome_versions = %w|
+  75.0.3770.80
   71.0.3578.80
   70.0.3538.77
   69.0.3497.92

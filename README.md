@@ -102,13 +102,14 @@ the selected build of Chrome browser to be installed from the
 `Vagrantfile` automates the Chrome debian package download from
 [https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php).
 Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
-Note the Chrome browser is often  re-released over time with the same major and minor version like
+Note the Chrome browser is often re-released over time with the same major and minor version like
 e.g. __69.0.3497.100__ vs. __69.0.3497.92__
-builds __72.0.3626.68__  vs. __72.0.3626.96__ vs. __72.0.3626.109__ vs. __72.0.3626.119__ and so on, with major version number bums relatively unfrequent.
+builds __72.0.3626.68__  vs. __72.0.3626.96__ vs. __72.0.3626.109__ vs. __72.0.3626.119__ and so on,
+with major version number bumps relatively unfrequent.
 The build one can find on slimjet is not always the very latest one of those -
 therefore it is not recommended to use Slimjet with the very recent past builds.
 
-Note: slimject appears to stop hosting past Chrome browser packages after build __71.0.3578.80__.
+Note: the slimject appears to stop hosting past Chrome browser releases on build __71__ and resumed with build __75__.
 
 Internaly the chromedriver communicates with Chrome browser via [WebSockets DevTools debugging interface](https://stackoverflow.com/questions/44244505/how-chromedriver-is-communicating-internally-with-the-browser?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
 
