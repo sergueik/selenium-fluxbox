@@ -197,6 +197,7 @@ if VM was launched through Virtual Box UI directly.
  * [Puppeteer](https://github.com/GoogleChrome/puppeteer) visual [recorder](https://github.com/euprogramador/puppeteer-screen-recorder) with Xvfb, standalone
  * [Puppeteer](https://github.com/GoogleChrome/puppeteer) example [tests](https://github.com/checkly/puppeteer-examples)
  * Puppeteer web scraping [tutorial](https://github.com/emadehsan/thal)
+ * [sdkman](https://sdkman.io/) - parallel version manager (jdk inparticular).
 
 ### License
 This project is licensed under the terms of the MIT license.
