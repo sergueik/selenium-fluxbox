@@ -9,6 +9,7 @@
 **/src/**/*.jar
 **/build/**
 **/test-output/**
+.vagrant
 /pom.xml.releaseBackup
 /release.properties
 /settings.xml

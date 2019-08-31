@@ -95,11 +95,10 @@ Note: this list is provided as an example, and is not maintained.
 | CHROME_VERSION       | 50.0.2661.75 |
 | CHROMEDRIVER_VERSION | 2.16         |
 
-For Chrome, the `CHROME_VERSION` can also set to `stable`, `unstable` or `beta` - forcing the `.deb` package of
-the selected build of Chrome browser to be installed from the
-[google repository](https://www.google.com/linuxrepositories/).
+With Chrome, `stable`, `unstable` or `beta` are valid versions, appropriate `.deb` package from the
+[google repository](https://www.google.com/linuxrepositories/) will be installed.
 
-`Vagrantfile` automates the Chrome debian package download from
+The `Vagrantfile` automates the download  of specific old build of from
 [https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php).
 Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
 Note the Chrome browser is often re-released over time with the same major and minor version like
@@ -108,8 +107,6 @@ builds __72.0.3626.68__  vs. __72.0.3626.96__ vs. __72.0.3626.109__ vs. __72.0.3
 with major version number bumps relatively unfrequent.
 The build one can find on slimjet is not always the very latest one of those -
 therefore it is not recommended to use Slimjet with the very recent past builds.
-
-Note: the slimject appears to stop hosting past Chrome browser releases on build __71__ and resumed with build __75__.
 
 Internaly the chromedriver communicates with Chrome browser via [WebSockets DevTools debugging interface](https://stackoverflow.com/questions/44244505/how-chromedriver-is-communicating-internally-with-the-browser?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
 

@@ -26,10 +26,8 @@ provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 # Automatically download box into ~/Downloads. useful to upgrade base box
-box_download = ENV.fetch('BOX_DOWNLOAD', '')
-box_download = (box_download =~ (/^(true|t|yes|y|1)$/i))
-debug = ENV.fetch('DEBUG', '')
-debug = (debug =~ (/^(true|t|yes|y|1)$/i))
+box_download = (ENV.fetch('BOX_DOWNLOAD', 'false') =~ /^(?:true|t|yes|y|1)$/i)? true : false
+debug = (ENV.fetch('DEBUG', 'false') =~ /^(?:true|t|yes|y|1)$/i)
 
 # Examine that specific Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
 # NOTE: the latest available Chome build is 71. 
@@ -93,9 +91,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   box_download_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/#{version}/providers/virtualbox.box"
   box_filepath = config.vm.box_url.gsub(Regexp.new('^file://'),'')
   if box_download
-    # pp box_download	
     if File.exist?(box_filepath)
-      $stderr.puts (box_filepath + ' already downloaded. Remove to re-download')
+      $stderr.puts (box_filepath + ' already downloaded. Remove the file to re-download')
     else  status = true
       $stderr.puts "Downloading #{box_download_url} to #{box_filepath}"
       %x|curl -k -L #{box_download_url} -o #{box_filepath}|
