@@ -177,6 +177,7 @@ if VM was launched through Virtual Box UI directly.
  * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
  * [examples and documentation](https://www.codota.com/code/java/classes/de.saumya.mojo.ruby.script.ScriptFactory)
  * [parallel testing testng framerowk](https://github.com/CybertekSchool/parallel-multi-browser-testng-framework) - note utility code redundant across various projects of that author.
+ * [oracle logins](http://bugmenot.com/view/oracle.com) for downloading Java SE 8 and earlier from oracle technet [Java Archive Downloads](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html) page.
 
 ### License
 This project is licensed under the terms of the MIT license.
