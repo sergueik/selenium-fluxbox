@@ -1,9 +1,16 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require 'fileutils'
+require 'find'
+require 'json'
+require 'net/http'
+require 'pathname'
+require 'pp'
+
 provision_selenium = ENV.fetch('PROVISION_SELENIUM', '')
 
-# This verison of Vagrantfile has various "alternative" commands many of which do not work removed temporarily.
+# This verison of Vagrantfile removes various "alternative" commands many of which do not work
 # Please refer to Vagrantfile.OLD for those command details.
 
 selenium_version = ENV.fetch('SELENIUM_VERSION', '3.14.0')
@@ -13,17 +20,21 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
-# experimental, Katalon Studio for Linux (Console Mode)
-# NOTE: only OpenJDK 8 - not the Oracle JDK - is supported
+# experimental: install Katalon Studio for Linux
+# NOTE: Katalon Studio requires that OpenJDK 8 - not the Oracle JDK - is installed 
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
+# Automatically download box into ~/Downloads. useful to upgrade base box
+box_download = (ENV.fetch('BOX_DOWNLOAD', 'false') =~ /^(?:true|t|yes|y|1)$/i)? true : false
+debug = (ENV.fetch('DEBUG', 'false') =~ /^(?:true|t|yes|y|1)$/i)
 
-debug = ENV.fetch('DEBUG', '')
-
-# Check if requested Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
+# Examine that specific Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
+# NOTE: the latest available Chome build is 71. 
 # TODO: embed the 'get_chrome_version.rb'
 available_chrome_versions = %w|
+  76.0.3809.100
+  75.0.3770.80
   71.0.3578.80
   70.0.3538.77
   69.0.3497.92
@@ -54,7 +65,7 @@ chrome_version = ENV.fetch('CHROME_VERSION', available_chrome_versions[0])
 
 unless chrome_version.empty? or chrome_version =~ /(?:beta|stable|dev|unstable)/ or available_chrome_versions.include?(chrome_version)
   puts 'CHROME_VERSION should be set to "stable", "unstable" "dev" or "beta"'
-  puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php:\n" + available_chrome_versions.join("\n")
+  puts "Specific old Chrome versions available from https://www.slimjet.com/chrome/google-chrome-old-version.php\n" + available_chrome_versions.join("\n")
   exit
 end
 
@@ -64,11 +75,29 @@ box_memory = ENV.fetch('BOX_MEMORY', '2048').to_i
 basedir = basedir.gsub('\\', '/')
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = 'ubuntu/trusty64-fluxbox'
-  # Localy cached vagrant box image from https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/14.04/providers/virtualbox.box
   # gets cached in ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-trusty64-fluxbox/0/virtualbox
   # see also http://www.vagrantbox.es/ and http://dev.modern.ie/tools/vms/linux/
   config_vm_box_name = 'trusty-server-amd64-vagrant-selenium.box'
   config.vm.box_url = "file://#{basedir}/Downloads/#{config_vm_box_name}"
+  # Localy cached vagrant box image
+  version = '14.04'
+  version = '20190206.0.0'
+  # NOTE: the https://superuser.com/questions/747699/vagrant-box-url-for-json-metadata-file - the metadata.json should be loaded as directory index, not explicitly
+  metadata_response = Net::HTTP.get_response('https://vagrantcloud.com/ubuntu/boxes/trusty64', '/')
+  metadata_obj = JSON.parse(metadata_response)
+  # NOTE: curl --head -k $URL
+  # does not always show the size (Content-Length header) of the box file.
+  # e.g. Vagrantcloud does not.
+  box_download_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/#{version}/providers/virtualbox.box"
+  box_filepath = config.vm.box_url.gsub(Regexp.new('^file://'),'')
+  if box_download
+    if File.exist?(box_filepath)
+      $stderr.puts (box_filepath + ' already downloaded. Remove the file to re-download')
+    else  status = true
+      $stderr.puts "Downloading #{box_download_url} to #{box_filepath}"
+      %x|curl -k -L #{box_download_url} -o #{box_filepath}|
+    end
+  end
   config.vm.network :forwarded_port, guest:4444, host:4444
   config.vm.network :private_network, ip: '192.168.33.10'
   config.vm.boot_timeout = 600
@@ -77,7 +106,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision 'shell', inline: <<-END_OF_PROVISION
 #!/bin/bash
 DEBUG='#{debug}'
-if [[ -z $DEBUG ]] ; then
+if [[ ! -z $DEBUG ]] ; then
 set -x
 fi
 
@@ -198,7 +227,7 @@ if [[ $PROVISION_SELENIUM ]] ; then
         # GPG error: http://dl.google.com stable Release: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 1397BC53640DB551
         apt-add-repository http://dl.google.com/linux/chrome/deb/
         apt-get -qq update
-        apt-get install google-chrome-${CHROME_VERSION}
+        apt-get install -qy --allow-unauthenticated google-chrome-${CHROME_VERSION}
       ;;
       *)
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
@@ -413,7 +442,7 @@ if [[ $PROVISION_KATALON ]] ; then
 
   # Katalon Studio activation information
   # The token was generated by Katalon Studio itself when it was lanched and activated manually
-  # the token seems to be unique per instance - 
+  # the token seems to be unique per instance -
   # the presence of '~/.katalon/application.properties' does not stop Katalon Studio from promptimg for activation
   DEVELOPER_EMAIL='kouzmine_serguei@yahoo.com'
   ACTIVATION_TOKEN='1015_1836766539'
