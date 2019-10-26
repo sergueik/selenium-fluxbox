@@ -28,6 +28,11 @@ provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 # Automatically download box into ~/Downloads. useful to upgrade base box
+# NOTE: the strongly-typed ENV.fetch does not work correctly
+# $export BOX_DOWNLOAD=false
+# box_download = ENV.fetch('BOX_DOWNLOAD', false)
+# puts '!' if box_download
+# will print the '!'
 box_download = ENV.fetch('BOX_DOWNLOAD', false)
 debug = ENV.fetch('DEBUG', false)
 have_ssh_key = ENV.fetch('HAVE_SSH_KEY', false)
@@ -91,7 +96,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   version = '14.04'
   version = '20190206.0.0'
   # NOTE: the https://superuser.com/questions/747699/vagrant-box-url-for-json-metadata-file - the metadata.json should be loaded as directory index, not explicitly
-  if box_download
+  if box_download == true
     # based on: https://docs.ruby-lang.org/en/2.0.0/Net/HTTP.html#class-Net::HTTP-label-Setting+Headers
     # https://www.vagrantup.com/docs/vagrant-cloud/api.html
     uri = URI('https://vagrantcloud.com/ubuntu/boxes/trusty64/versions')
