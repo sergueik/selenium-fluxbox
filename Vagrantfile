@@ -5,6 +5,8 @@ require 'fileutils'
 require 'find'
 require 'json'
 require 'net/http'
+# http gem that has to be compiled
+# require 'http'
 require 'pathname'
 require 'pp'
 
@@ -90,8 +92,31 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   version = '20190206.0.0'
   # NOTE: the https://superuser.com/questions/747699/vagrant-box-url-for-json-metadata-file - the metadata.json should be loaded as directory index, not explicitly
   if box_download
-    metadata_response = Net::HTTP.get_response('https://vagrantcloud.com/ubuntu/boxes/trusty64', '/')
-    metadata_obj = JSON.parse(metadata_response)
+    # based on: https://docs.ruby-lang.org/en/2.0.0/Net/HTTP.html#class-Net::HTTP-label-Setting+Headers
+    # https://www.vagrantup.com/docs/vagrant-cloud/api.html
+    uri = URI('https://vagrantcloud.com/ubuntu/boxes/trusty64/versions')
+    req = Net::HTTP::Post.new(uri)
+    req.set_form_data('from' => '') # none needed ?
+    req.content_type = 'application/json'
+    begin
+      res = Net::HTTP.start(uri.hostname, uri.port) do |http|
+        http.request(req)
+	# TODO: end of file reached
+      end
+      case res
+      when Net::HTTPSuccess, Net::HTTPRedirection
+        # OK
+        metadata_obj = JSON.parse(response.body)
+      else
+       res.value
+      end
+    rescue => e
+      puts 'Exception (ignored) '+ e.to_s
+    end
+    # TODO: use http gem
+    # api = HTTP.persistent('https://vagrantcloud.com').headers( 'Content-Type' => 'application/json')
+    # metadata_response = api.post '/ubuntu/boxes/trusty64/versions'
+    # metadata_obj = JSON.parse(metadata_response.body)
     # NOTE: curl --head -k $URL
     # does not always show the size (Content-Length header) of the box file.
     # e.g. Vagrantcloud does not.
