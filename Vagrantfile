@@ -21,16 +21,16 @@ geckodriver_version = ENV.fetch('GECKODRIVER_VERSION', '')
 use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 
 # experimental: install Katalon Studio for Linux
-# NOTE: Katalon Studio requires that OpenJDK 8 - not the Oracle JDK - is installed 
+# NOTE: Katalon Studio requires that OpenJDK 8 - not the Oracle JDK - is installed
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 # Automatically download box into ~/Downloads. useful to upgrade base box
-box_download = (ENV.fetch('BOX_DOWNLOAD', 'false') =~ /^(?:true|t|yes|y|1)$/i)? true : false
-debug = (ENV.fetch('DEBUG', 'false') =~ /^(?:true|t|yes|y|1)$/i)
+box_download = ENV.fetch('BOX_DOWNLOAD', false)
+debug = ENV.fetch('DEBUG', false)
+have_ssh_key = ENV.fetch('HAVE_SSH_KEY', false)
 
 # Examine that specific Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
-# NOTE: the latest available Chome build is 71. 
 # TODO: embed the 'get_chrome_version.rb'
 available_chrome_versions = %w|
   76.0.3809.100
@@ -74,6 +74,12 @@ basedir = ENV.fetch('HOME','') || ENV.fetch('USERPROFILE', '')
 box_memory = ENV.fetch('BOX_MEMORY', '2048').to_i
 basedir = basedir.gsub('\\', '/')
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  if have_ssh_key
+    # https://www.vagrantup.com/docs/vagrantfile/ssh_settings.html
+    # see also
+    # https://riselab.ru/ustanovka-i-nastrojka-rabochej-sredy-homestead-dlya-laravel/
+    config.ssh.insert_key = false
+  end
   config.vm.box = 'ubuntu/trusty64-fluxbox'
   # gets cached in ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-trusty64-fluxbox/0/virtualbox
   # see also http://www.vagrantbox.es/ and http://dev.modern.ie/tools/vms/linux/
@@ -83,18 +89,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   version = '14.04'
   version = '20190206.0.0'
   # NOTE: the https://superuser.com/questions/747699/vagrant-box-url-for-json-metadata-file - the metadata.json should be loaded as directory index, not explicitly
-  metadata_response = Net::HTTP.get_response('https://vagrantcloud.com/ubuntu/boxes/trusty64', '/')
-  metadata_obj = JSON.parse(metadata_response)
-  # NOTE: curl --head -k $URL
-  # does not always show the size (Content-Length header) of the box file.
-  # e.g. Vagrantcloud does not.
-  box_download_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/#{version}/providers/virtualbox.box"
-  box_filepath = config.vm.box_url.gsub(Regexp.new('^file://'),'')
   if box_download
+    metadata_response = Net::HTTP.get_response('https://vagrantcloud.com/ubuntu/boxes/trusty64', '/')
+    metadata_obj = JSON.parse(metadata_response)
+    # NOTE: curl --head -k $URL
+    # does not always show the size (Content-Length header) of the box file.
+    # e.g. Vagrantcloud does not.
+    box_download_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/#{version}/providers/virtualbox.box"
+    box_filepath = config.vm.box_url.gsub(Regexp.new('^file://'),'')
     if File.exist?(box_filepath)
       $stderr.puts (box_filepath + ' already downloaded. Remove the file to re-download')
     else  status = true
-      $stderr.puts "Downloading #{box_download_url} to #{box_filepath}"
+      $stderr.puts "Downloading from #{box_download_url} to #{box_filepath}"
       %x|curl -k -L #{box_download_url} -o #{box_filepath}|
     end
   end
