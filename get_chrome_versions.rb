@@ -24,7 +24,9 @@ $BASE_DOWNLOAD='http://www.slimjetbrowser.com/chrome'
 has_nokogiri = false
 begin
   require 'nokogiri'
-  puts 'Loading "nokogiri"'
+  if $DEBUG
+    puts 'Loading "nokogiri"'
+  end
   has_nokogiri = true
 rescue LoadError =>  e
   if ! has_nokogiri
@@ -37,7 +39,9 @@ end
 has_restclient = false
 begin
   require 'restclient'
-  puts 'Loading "restclient"'
+  if $DEBUG
+    puts 'Loading "restclient"'
+  end
   has_restlient = true
 rescue LoadError =>  e
   if ! has_restlient
@@ -48,9 +52,10 @@ rescue LoadError =>  e
     end
   end
 end
-pp "Loaded nokogiri: #{has_nokogiri}"
-pp "Loaded restclient: #{has_restclient}"
-
+if $DEBUG
+  pp "Loaded nokogiri: #{has_nokogiri}"
+  pp "Loaded restclient: #{has_restclient}"
+end
 
 uri = URI('https://www.slimjet.com/chrome/google-chrome-old-version.php')
 req = Net::HTTP::Get.new(uri.path)
@@ -93,12 +98,12 @@ end
 if $VERBOSE
   pp downloads
 end
-if $RELEASE.nil? 
+if $RELEASE.nil?
   # TODO:
   # puts downloads.sort_by(&:key).first
 
   last_download = (downloads.sort_by {|build, url| build}).last
-  # no longer a hash  
+  # no longer a hash
   pp [last_download[0], "#{$BASE_DOWNLOAD}/#{last_download[1]}"]
 else
   selected_build = downloads.keys.find {|build| build =~ /^#{$RELEASE}.*/i}
