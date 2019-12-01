@@ -311,21 +311,6 @@ if [[ $PROVISION_SELENIUM ]] ; then
   fi
   #=========================================================
   CHROMEDRIVER_VERSION='#{chromedriver_version}'
-  # NOTE: The following is based on: https://chromedriver.chromium.org/downloads/version-selection
-  # BASE_URL='http://chromedriver.storage.googleapis.com/LATEST_RELEASE'
-  # CHROMEDRIVER_VERSION=$(curl -s "${BASE_URL}_${CHROME_VERSION}")
-  # URL="https://chromedriver.storage.googleapis.com/index.html?path=${CHROMEDRIVER_VERSION}"
-  # which is not yet working:
-  # CHROME_VERSION=78
-  # returns
-  # CHROMEDRIVER_VERSION=78.0.3904.105
-  # but the directory http://chromedriver.storage.googleapis.com/78.0.3904.105
-  # does not exist:
-  # <Error>
-  #  <Code>NoSuchKey</Code>
-  #  <Message>The specified key does not exist.</Message>
-  #  <Details>No such object: chromedriver/78.0.3904.105</Details>
-  # </Error>
   if [[ $CHROMEDRIVER_VERSION ]] ; then
     echo "Download user specified version $CHROMEDRIVER_VERSION of Chromedriver"
   else
