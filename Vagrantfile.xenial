@@ -25,6 +25,7 @@ have_ssh_key = ENV.fetch('HAVE_SSH_KEY', false)
 # Examine that specific Chrome version is available on https://www.slimjet.com/chrome/google-chrome-old-version.php
 # TODO: embed the 'get_chrome_version.rb'
 available_chrome_versions = %w|
+  79.0.3945.88
   78.0.3904.97
   76.0.3809.100
   75.0.3770.80

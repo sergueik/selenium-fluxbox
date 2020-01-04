@@ -1,21 +1,49 @@
+#!/usr/bin/env ruby
+# NOTE: cannot use "$@" or $0 - gets passed verbatim
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
 require 'uri'
 require 'net/https'
 require 'pp'
 require 'optparse'
 
 options = {}
-OptionParser.new do |opts|
-  opts.banner = 'Usage: example.rb [options]'
-  opts.on('-v', '--[no-]verbose', 'Run verbosely') do |v|
-    options[:verbose] = v
-  end
-  opts.on('-rRELEASE', '--run=RELEASE', 'Return the build number of available RELEASE chrome') do |data|
-    options[:version] = data
-  end
-end.parse!
+# NOTE: too greedy
+# TODO: get options "the right way" ?
+if $0 == __FILE__
+  options = ARGV.getopts('vdr:', 'verbose', 'debug', 'release:')
+  options[:verbose] = options['v'] || options['verbose']
+  options[:debug] = options['d'] || options['debug']
+  options[:release] = options['r'] || options['release']
+  options[:file] = $0
+  options.each do |k,_|
+    options.delete(k) if k.kind_of? String
+  end	
+else
+
+  OptionParser.new do |opts|
+    opts.banner = 'Usage: example.rb [options]'
+    opts.on('-v', '--[no-]verbose', 'Run verbosely') do |data|
+      options[:verbose] = data
+    end
+    opts.on('-d', '--debug', 'Run in debug mode') do |data|
+      options[:debug] = data
+    end
+    opts.on('-rRELEASE', '--release=RELEASE', 'Return the build number of closest match available for specific RELEASE of Chrome') do |data|
+      options[:release] = data
+    end
+  end.parse!
+
+end
 
 $DEBUG = options[:debug]
-$RELEASE = options[:version]
+if $DEBUG
+  PP.pp options, $stderr
+  exit 0
+end
+$RELEASE = options[:release]
 $VERBOSE = options[:verbose]
 $BASE_DOWNLOAD='http://www.slimjetbrowser.com/chrome'
 
