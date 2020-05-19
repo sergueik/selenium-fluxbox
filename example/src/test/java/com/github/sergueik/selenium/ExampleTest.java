@@ -1,17 +1,13 @@
 package com.github.sergueik.selenium;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.CoreMatchers.is;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-
-import org.hamcrest.MatcherAssert;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
@@ -29,6 +25,7 @@ import java.nio.file.Paths;
 
 // https://seleniumhq.github.io/selenium/docs/api/java/org/openqa/selenium/support/ui/FluentWait.html#pollingEvery-java.time.Duration-
 // NOTE: needs java.time.Duration not the org.openqa.selenium.support.ui.Duration;
+
 import java.time.Duration;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -36,8 +33,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
@@ -47,20 +45,13 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import com.rationaleemotions.ExecutionBuilder;
-import com.rationaleemotions.SshKnowHow;
 import com.rationaleemotions.pojo.ExecResults;
 import com.rationaleemotions.pojo.SSHUser;
+import com.rationaleemotions.ExecutionBuilder;
+import com.rationaleemotions.SshKnowHow;
 
 // based on: https://github.com/sergueik/selenium_tests/blob/master/src/test/java/com/github/sergueik/selenium/ParallelMultiBrowserTest.java
 // based on https://github.com/tw1911/test1/blob/master/src/test/java/com/tw1911/test1/GoogleSearchTests.java
@@ -117,6 +108,8 @@ public class ExampleTest {
 		browserDriverSystemProperties.put("edge", "webdriver.edge.driver");
 	}
 
+	// to sensure thread safety
+	// initialize driver, actions, js, screenshot and other common clases per-test 
 	@Test(enabled = true, dataProvider = "same-browser", threadPoolSize = 2)
 	public void googleSearch1Test(String browser, String baseURL,
 			String cssSelector) {
@@ -132,12 +125,15 @@ public class ExampleTest {
 		}
 		driver.get(baseURL);
 
-		Actions actions = new Actions(driver);
-
 		driver.manage().timeouts().setScriptTimeout(scriptTimeout,
 				TimeUnit.SECONDS);
 
+		@SuppressWarnings("unused")
+		Actions actions = new Actions(driver);
+
+		@SuppressWarnings("unused")
 		TakesScreenshot screenshot = ((TakesScreenshot) driver);
+		@SuppressWarnings("unused")
 		JavascriptExecutor js = ((JavascriptExecutor) driver);
 
 		WebDriverWait wait = new WebDriverWait(driver, flexibleWait);
@@ -189,12 +185,16 @@ public class ExampleTest {
 					+ "Driver hash code: " + driver.hashCode());
 		}
 		driver.get(baseURL);
+
+		@SuppressWarnings("unused")
 		Actions actions = new Actions(driver);
 
 		driver.manage().timeouts().setScriptTimeout(scriptTimeout,
 				TimeUnit.SECONDS);
 
+		@SuppressWarnings("unused")
 		TakesScreenshot screenshot = ((TakesScreenshot) driver);
+		@SuppressWarnings("unused")
 		JavascriptExecutor js = ((JavascriptExecutor) driver);
 
 		WebDriverWait wait = new WebDriverWait(driver, flexibleWait);
@@ -250,7 +250,6 @@ public class ExampleTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@AfterClass
 	// Can inject only one of <ITestContext, XmlTest> into a AfterClass annotated
 	// method
@@ -389,7 +388,9 @@ public class ExampleTest {
 		SshKnowHow ssh = new ExecutionBuilder().connectTo(hostName).onPort(port)
 				.includeHostKeyChecks(false).usingUserInfo(sshUser).build();
 
+		@SuppressWarnings("unused")
 		ExecResults results = ssh.executeCommand(command);
+		// TODO: process results
 	}
 
 	private static String propertiesFileName = "vagarant.properties";
