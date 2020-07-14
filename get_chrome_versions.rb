@@ -69,9 +69,9 @@ end
 # TODO: clear
 has_restclient = false
 begin
-  require 'restclient'
+  require 'rest-client'
   if $DEBUG
-    puts 'Loading "restclient"'
+    puts 'Loading "rest-client"'
   end
   has_restlient = true
 rescue LoadError =>  e
@@ -79,7 +79,8 @@ rescue LoadError =>  e
     if $DEBUG
       STDERR.printf('Exception: %70.68s', e.message)
     end
-    $stderr.puts 'needed gem not found: restclient'
+    # not really a needed one
+    $stderr.puts 'needed gem not found: rest-client'
   end
 end
 
