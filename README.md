@@ -1,33 +1,30 @@
 ### Info
 
-This project offers a standalone Ubuntu Trusty __14.04__ __LTS__ or Xenial __16.04__ Vagrant box instance
-containing
+This project offers a standalone Ubuntu Vagrant box instance containing
 
  * [Fluxbox](https://wiki.debian.org/FluxBox)
  * [tmux](https://github.com/tmux/tmux) autologin
- * User-specified version of Selenium ( __3.x__ or legacy __2.53__ )
- * Chrome
- * Chrome Driver
- * Firefox
- * Gecko Driver
+ * Pinned User-specified version of Selenium ( __4.*__, __3.x__ or legacy __2.53__ )
+ * Chrome with Chrome Driver
+ * Firefox with Gecko Driver
+ * Katalon IDE (experimental)
 
-The 'bleeding edge' versions of the drivers sometimes don't work well together, e.g. through errors like:
-`org.openqa.selenium.WebDriverException: unknown error: Chrome version must be >= 52.0.2743.0 ...`
-Likewise the Selenium hub error
+It is not uncommon that the 'bleeding edge' versions of the drivers don't work well together, e.g. throwing errors like:
+`org.openqa.selenium.WebDriverException: unknown error: Chrome version must be >= 52.0.2743.0 ...` (this has been observed quie often during early Selenium __3.x__, and then again with __4.0.alpha__ releases).
+Likewise the Selenium hub error on the screenshot
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/session_error.png)
-indicates a likely versions mismatch between Selenium, Geckodriver and Firefox, or Selenium, ChromeDriver and Chrome.
+illustrates a likely versions mismatch between Selenium, Geckodriver and Firefox, or Selenium, ChromeDriver and Chrome.
 
-This has been especially true with early Selenium __3.x__ releases.
 One often wishes to enforce specific past versions of Selenium-based toolchain.
 Vagrant makes this easy.
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/box.png)
 
 Note: Docker makes this easy too, but there is no native Docker port for Windows 8.x and earlier and
 this could be one's reason to stay with Vagrant.
-
-This project uses `Vagrantfile` which is loosely based on [anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
-The `Vagrantfile.xenial` for Ubuntu Xenial __16.04__ __LTS__
-was recently added - there a differences in openjdk/Oracle JDK availability for xenial and trusty.
+  
+This project contains __Trusty___ __14.04__ __LTS__ `Vagrantfile` that is loosely based on [anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
+The Ubuntu __Xenial__ __16.04__  __LTS__ `Vagrantfile.xenial` was added - there a differences in openjdk/Oracle JDK release-specific repo availability for __Xenial__ and __Trusty__. 
+The support of Ubuntu __Bionic__ __18.04__ and __Focal__ __20.04__ is planned - no strong depenency between the browser and OS release exits for Linux.
 
 ### Usage
 
@@ -35,21 +32,45 @@ Download the vagrant box images of
 Trusty [trusty-server-amd64-vagrant-selenium.box](https://atlas.hashicorp.com/ubuntu/boxes/trusty64)
  or Xenial [vagrant-selenium](https://app.vagrantup.com/Th33x1l3/boxes/vagrant-selenium/versions/0.2.1/providers/virtualbox.box)
 locally, name it `trusty-server-amd64-vagrant-selenium.box` and
-`xenial-server-amd64-vagrant-selenium.box` respectively and place inside the `Downloads` directory.
+`xenial-server-amd64-vagrant-selenium.box` respectively and store in the `Downloads` directory of the user.
 
 Then run
 ```bash
 export PROVISION_SELENIUM=true
 vagrant up
 ```
-For downloading box for the very first time into `Downloads` directory add the following setting:
+or on Windows
+```cmd
+set PROVISION_SELENIUM=true
+vagrant up
+```
+
+For downloading box for the very first time into `Downloads` directory add the following setting (note: this setting is experimental):
 ```
 export BOX_DOWNLOAD=true
 export PROVISION_SELENIUM=true
 vagrant up
 ```
 Specific versions of Selenium Server, Firefox, Gecko Driver, Chrome, Chrome Driver can be set through the environment variables
-`SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`:
+`SELENIUM_VERSION`, `FIREFOX_VERSION`, `GECKODRIVER_VERSION`, `CHROME_VERSION`, `CHROMEDRIVER_VERSION`.
+
+if a specific version of the Selenium Jar or browser is needed, set it via
+
+```sh
+export SELENIUM_VERSION=3.141.59
+export CHROME_VERSION=75.0.3770.80
+export FIREFOX_VERSION=45.0.1
+```
+or
+
+```cmd
+set SELENIUM_VERSION=3.5.3
+set SELENIUM_VERSION=3.141.59
+set CHROME_VERSION=75.0.3770.80
+```
+
+Also the `USE_ORACLE_JAVA` setting is recognized to use oracle JDK on Trusty.
+
 ```bash
 export PROVISION_SELENIUM=true
 export SELENIUM_VERSION=3.14.0
@@ -59,18 +80,18 @@ export CHROMEDRIVER_VERSION=2.30
 vagrant up
 ```
 
-To lookup the available choices of Chrome browser specific release e.g. __48__, run
+For the list or recognized chrome versions, inspect the `Vagrantfile`.  Another option to lookup the available choices of Chrome browser specific release e.g. __48__, is to run
 ```sh
 ruby get_chrome_versions.rb -r 48
 ```
-it will print:
+this will print:
 ```Ruby
 ["48.0.2564.109",
  "http://www.slimjetbrowser.com/chrome/lnx/chrome64_48.0.2564.109.deb"]
 ```
-and one can set the `CHROMEDRIVER_VERSION` to `48.0.2564.109`.
+therefore one must set the `CHROMEDRIVER_VERSION` to `48.0.2564.109` if a release 48 is intended.
 
-Sampe supported combinations of legacy browser and driver versions are listed below.
+Few supported combinations of legacy browser and driver versions are listed below.
 Note: this list is provided as an example, and is not maintained.
 
 |                      |              |
@@ -169,13 +190,13 @@ if VM was launched through Virtual Box UI directly.
 
 ### Work in Progress
 
-    * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
-    * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
-    * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta), [lucidworks/browser-tester](https://github.com/lucidworks/browser-tester)
-    * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel). More about using headless Chrome see
-    * [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
-    * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
-    * desktop shortcut generation e.g. [example](https://github.com/regaur/puppeteer/blob/master/puppeteer.install) for ArchLinux, chromium puppeteer
+  * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
+  * Enable [gecko driver](https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver)
+  * Dockerfile - see e.g. [docker](https://github.com/elgalu/docker-selenium), [docker-selenium-firefox-chrome-beta](https://github.com/vvo/docker-selenium-firefox-chrome-beta), [lucidworks/browser-tester](https://github.com/lucidworks/browser-tester), [Docker image based on Ununtu with JDK and maven for Java](https://github.com/markhobson/docker-maven-chrome)
+  * Support downloads from [chromium dev channel](http://www.chromium.org/getting-involved/dev-channel). More about using headless Chrome see
+  * [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
+  * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
+  * desktop shortcut generation e.g. [example](https://github.com/regaur/puppeteer/blob/master/puppeteer.install) for ArchLinux, chromium puppeteer
 
 ### See also:
 
