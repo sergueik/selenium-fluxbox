@@ -26,6 +26,8 @@ use_oracle_java = ENV.fetch('USE_ORACLE_JAVA', '')
 # NOTE: Katalon Studio requires that OpenJDK 8 - not the Oracle JDK - is installed
 provision_katalon = ENV.fetch('PROVISION_KATALON', '') # empty for false
 # NOTE: not needed for this specific base box.
+provision_yandex = ENV.fetch('PROVISION_YANDEX', '') # empty for false
+# NOTE: not needed for this specific base box.
 provision_vnc = ENV.fetch('PROVISION_VNC', '') # empty for false
 # Automatically download box into ~/Downloads. useful to upgrade base box
 # NOTE: the strongly-typed ENV.fetch does not work correctly
@@ -382,6 +384,20 @@ if [[ $PROVISION_SELENIUM ]] ; then
     update-alternatives --set javac "${JAVA_INSTALL_DIR}/bin/javac"
   fi
 fi
+PROVISION_YANDEX='#{provision_yandex}'
+# if [[ $PROVISION_YANDEX ]] ; then
+# TODO:
+# https://www.linuxbabe.com/browser/yandex-browser-debian-ubuntu-fedora-opensuse-arch
+# add to sources list
+# sudo cat<<EOF>/etc/apt/sources.list.d/yandex-browser.list
+# deb [arch=amd64] http://repo.yandex.ru/yandex-browser/deb beta main
+# EOF
+# download and import the GPG key so that packages downloaded from this repository can be authenticated.
+# wget https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG
+# sudo apt-key add YANDEX-BROWSER-KEY.GPG
+# sudo apt update
+# sudo apt install -qqy yandex-browser-beta
+# fi
 PROVISION_KATALON='#{provision_katalon}'
 if [[ $PROVISION_KATALON ]] ; then
   # based on scripts in https://github.com/katalon-studio/docker-images
