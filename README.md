@@ -23,8 +23,8 @@ Note: Docker makes this easy too, but there is no native Docker port for Windows
 this could be one's reason to stay with Vagrant.
   
 This project contains __Trusty___ __14.04__ __LTS__ `Vagrantfile` that is loosely based on [anomen/vagrant-selenium](https://github.com/Anomen/vagrant-selenium/blob/master/script.sh)
-The Ubuntu __Xenial__ __16.04__  __LTS__ `Vagrantfile.xenial` was added - there a differences in openjdk/Oracle JDK release-specific repo availability for __Xenial__ and __Trusty__. 
-The support of Ubuntu __Bionic__ __18.04__ and __Focal__ __20.04__ is planned - no strong depenency between the browser and OS release exits for Linux.
+There is also an  Ubuntu __Xenial__ __16.04__  __LTS__ `Vagrantfile.xenial`: there are differences in openjdk/Oracle JDK release-specific repo availability between  __Xenial__ and __Trusty__. 
+Support of Ubuntu __Bionic__ __18.04__ and __Focal__ __20.04__ releases is planned - no strong depenency between the browser and OS release exits for Linux.
 
 ### Usage
 
@@ -120,7 +120,7 @@ With Chrome, `stable`, `unstable` or `beta` are valid versions, appropriate `.de
 [google repository](https://www.google.com/linuxrepositories/) will be installed.
 
 The `Vagrantfile` automates the download  of specific old build of from
-[https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php).
+[https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php). Note, there are no old Chrome builds __87.x__, __88.x__, or __89.x__ there .
 Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
 Note the Chrome browser is often re-released over time with the same major and minor version like
 e.g. __69.0.3497.100__ vs. __69.0.3497.92__
@@ -217,6 +217,7 @@ if VM was launched through Virtual Box UI directly.
  * Puppeteer web scraping [tutorial](https://github.com/emadehsan/thal)
  * [sdkman](https://sdkman.io/) - parallel version manager (in particular, of JDK).
  * [oracle logins](http://bugmenot.com/view/oracle.com) for downloading Java SE 8 and earlier from oracle technet [Java Archive Downloads](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html) page.
+*  shell script to [install chrome latest RPM](https://intoli.com/install-google-chrome.sh) via `curl $URL | bash - ` from JDK11 + chrome [Dockerfile](https://hub.docker.com/r/bigtincan/jdk11-chrome/dockerfile)
 
 ### License
 This project is licensed under the terms of the MIT license.
