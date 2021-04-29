@@ -19,7 +19,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <commons-exec.version>1.3</commons-exec.version>
-    <commons-io.version>2.5</commons-io.version>
+    <commons-io.version>2.7</commons-io.version>
     <commons-lang3.version>3.0.1</commons-lang3.version>
     <hamcrest-all.version>1.3</hamcrest-all.version>
     <hamcrest-date.version>2.0.4</hamcrest-date.version>
@@ -30,18 +30,11 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <selenium.version>3.13.0</selenium.version>
     <selenium-firefox-driver.version>3.13.0</selenium-firefox-driver.version>
-    <!-- TODO:
-with 2.53.1
-java.lang.NoClassDefFoundError: org/openqa/selenium/remote/DesiredCapabilities
-with 3.13.0
-java.lang.NoClassDefFoundError: org/openqa/selenium/remote/JsonToBeanConverter
--->
     <testng.version>6.14.3</testng.version>
     <guava.version>23.1</guava.version>
     <browser.name>chrome</browser.name>
     <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
     <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
-    <sikulixapi.version>1.1.0</sikulixapi.version>
     <simple-ssh.version>1.0.2</simple-ssh.version>
     <sshd-core.version>1.3.0</sshd-core.version>
   </properties>
@@ -73,30 +66,10 @@ java.lang.NoClassDefFoundError: org/openqa/selenium/remote/JsonToBeanConverter
       <version>${hamcrest-all.version}</version>
       <scope>test</scope>
     </dependency>
-    <!-- https://piotrga.wordpress.com/2009/03/27/hamcrest-regex-matcher/ -->
-    <!--
-<dependency>
-  <groupId>org.hamcrest</groupId>
-  <artifactId>hamcrest-library</artifactId>
-      <version>${hamcrest-all.version}</version>
-  <scope>test</scope>
-</dependency>
-<dependency>
-  <groupId>org.hamcrest</groupId>
-  <artifactId>hamcrest-core</artifactId>
-      <version>${hamcrest-all.version}</version>
-  <scope>test</scope>
-</dependency>
--->
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
       <version>1.10.2</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sikulix</groupId>
-      <artifactId>sikulixapi</artifactId>
-      <version>${sikulixapi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -138,15 +111,6 @@ java.lang.NoClassDefFoundError: org/openqa/selenium/remote/JsonToBeanConverter
       <artifactId>selenium-support</artifactId>
       <version>${selenium.version}</version>
     </dependency>
-    <!--
-    <dependency>
-     <groupId>org.seleniumhq.selenium</groupId>
-     <artifactId>selenium-server-standalone</artifactId>
-     <version>3.3.1</version>
-     <scope>system</scope>
-     <systemPath>${project.basedir}/src/main/resources/selenium-server-standalone-3.3.1.jar</systemPath>
-    </dependency>
-    -->
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-remote-driver</artifactId>
@@ -197,18 +161,8 @@ java.lang.NoClassDefFoundError: org/openqa/selenium/remote/JsonToBeanConverter
           <source>${java.version}</source>
           <target>${java.version}</target>
           <encoding>${project.build.sourceEncoding}</encoding>
-          <!-- On windows one needs to update console code page outside of maven
-to work with cyrillic pages:
-chcp 65001
-set JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
-rem ${project.build.sourceEncoding}
- -->
           <compilerArgument>-Xlint:all</compilerArgument>
           <compilerArgument>-Xlint:-processing</compilerArgument>
-          <!--
-   <compilerArgument>-Dfile.encoding=${project.build.sourceEncoding}</compilerArgument>
-Fatal error compiling: invalid flag: -Dfile.encoding=UTF-8 -> [Help 1]
--->
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
         </configuration>
@@ -235,12 +189,12 @@ Fatal error compiling: invalid flag: -Dfile.encoding=UTF-8 -> [Help 1]
           <trimStackTrace>false</trimStackTrace>
           <encoding>${project.build.sourceEncoding}</encoding>
           <!--
-	  NOTE: specifying the suite XML file prevents surefile from scannint all tests casses and execute everything with the method name mask match
+	  NOTE: specifying the suite XML file prevents surefile from running all tests casses and execute everything with the method name mask match
           <suiteXmlFiles>
             <suiteXmlFile>src/test/resources/suites/testng.xml</suiteXmlFile>
 	  </suiteXmlFiles>
 	  -->
-          <!-- For parallel runs with e.g. Vagrant https://github.com/sergueik/selenium-fluxbox  
+          <!-- For parallel runs
 	  <argLine>-Dfile.encoding=${project.build.sourceEncoding} -Dparallel=tests -DthreadCount=2 </argLine>
 	  -->
           <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
@@ -342,7 +296,7 @@ Fatal error compiling: invalid flag: -Dfile.encoding=UTF-8 -> [Help 1]
     <repository>
       <id>maven-central</id>
       <name>maven central repo</name>
-      <url>https://mvnrepository.com/repos/central</url>
+      <url>https://repo1.maven.org/maven2/</url>
     </repository>
     <repository>
       <id>osgeo</id>
