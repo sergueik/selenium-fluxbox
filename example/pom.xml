@@ -32,7 +32,7 @@
     <selenium-firefox-driver.version>3.13.0</selenium-firefox-driver.version>
     <testng.version>6.14.3</testng.version>
     <guava.version>23.1</guava.version>
-    <browser.name>chrome</browser.name>
+    <browser.name>firefox</browser.name>
     <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
     <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
     <simple-ssh.version>1.0.2</simple-ssh.version>
@@ -271,9 +271,6 @@
       <properties>
         <browser.name>chrome</browser.name>
       </properties>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
     </profile>
     <profile>
       <id>edge</id>
@@ -286,6 +283,9 @@
       <properties>
         <browser.name>firefox</browser.name>
       </properties>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
     </profile>
   </profiles>
   <repositories>

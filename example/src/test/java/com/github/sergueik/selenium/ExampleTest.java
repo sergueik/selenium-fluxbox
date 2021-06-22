@@ -36,9 +36,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -109,7 +112,7 @@ public class ExampleTest {
 	}
 
 	// to sensure thread safety
-	// initialize driver, actions, js, screenshot and other common clases per-test 
+	// initialize driver, actions, js, screenshot and other common clases per-test
 	@Test(enabled = true, dataProvider = "same-browser", threadPoolSize = 2)
 	public void googleSearch1Test(String browser, String baseURL,
 			String cssSelector) {
@@ -160,6 +163,16 @@ public class ExampleTest {
 						By.xpath(String.format("//input[@name = '%s']", "btnK"))))); // [@type='submit']
 						click();
 						*/
+
+		// take a screenshot
+		File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+		String currentDir = System.getProperty("user.dir");
+		// save the screenshot in png format on the disk.
+		try {
+			FileUtils.copyFile(scrFile,
+					new File(FilenameUtils.concat(currentDir, "screenshot.png")));
+		} catch (IOException e) {
+		}
 
 		element = wait.until(
 				// TODO; exercise locale - specific button assert "Поиск в Google" |
@@ -255,9 +268,9 @@ public class ExampleTest {
 	// method
 	public static void tearDown() {
 		String browser = "chrome";
-		killRemoteProcess(getBrowserExecutable(browser, true));
-		killRemoteProcess(getBrowserDriverExecutable(browser, true));
-
+		// commented for testing of Vagrantbox chef recipe
+		// killRemoteProcess(getBrowserExecutable(browser, true));
+		// killRemoteProcess(getBrowserDriverExecutable(browser, true));
 		// SelenideLogger.removeListener("allure");
 	}
 
@@ -310,8 +323,11 @@ public class ExampleTest {
 			} else {
 				browserExecutable = "google-chrome-stable";
 			}
-			capabilities
-					.setBrowserName(DesiredCapabilities.chrome().getBrowserName());
+			// the remote browser was hard coded to be chrome
+			// fixing this temporarily
+			capabilities.setBrowserName(
+					/* DesiredCapabilities.chrome().getBrowserName() */ DesiredCapabilities
+							.firefox().getBrowserName());
 			DriverWrapper.add(remote ? "remote" : "chrome", capabilities);
 		} else if (browser.equals("firefox")) {
 			browserExecutable = osName.equals("windows")
