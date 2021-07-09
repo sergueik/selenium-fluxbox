@@ -218,6 +218,8 @@ if VM was launched through Virtual Box UI directly.
  * [sdkman](https://sdkman.io/) - parallel version manager (in particular, of JDK).
  * [oracle logins](http://bugmenot.com/view/oracle.com) for downloading Java SE 8 and earlier from oracle technet [Java Archive Downloads](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html) page.
 *  shell script to [install chrome latest RPM](https://intoli.com/install-google-chrome.sh) via `curl $URL | bash - ` from JDK11 + chrome [Dockerfile](https://hub.docker.com/r/bigtincan/jdk11-chrome/dockerfile)
+* [xserver-xorg-video-dummy driver](https://techoverflow.net/2019/02/23/how-to-run-x-server-using-xserver-xorg-video-dummy-driver-on-ubuntu/)
+* an old instruction for headless debian [setup](http://cosmolinux.no-ip.org/raconetlinux2/dummy_radeon_nvidia.html) (via dumy X driver)
 
 ### License
 This project is licensed under the terms of the MIT license.

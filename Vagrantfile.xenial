@@ -141,7 +141,7 @@ for server in "${!key_hash[@]}"; do sudo apt-key adv --keyserver "${server}" --r
 
 apt-get -qq update
 
-apt-get -qqy install openjdk-8-jdk fluxbox xorg unzip vim default-jre rungetty wget libxml2-utils jq
+apt-get -qqy install openjdk-8-jdk fluxbox xorg xserver-xorg-video-dummy xvfb unzip vim default-jre rungetty wget libxml2-utils jq
 # NOTE: missing '/usr/share/images/fluxbox/ubuntu-light.png'
 update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 #=========================================================
@@ -576,12 +576,9 @@ sudo reboot
     v.gui  = true
     v.name = 'Selenium Fluxbox Xenial'
 
-    v.customize ['modifyvm', :id, '--memory', box_memory ]
-    v.customize ['modifyvm', :id, '--vram', '16']
-    v.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+    v.customize ['modifyvm', :id, '--memory', box_memory, '--vram', '16', '--ioapic', 'on', '--cableconnected1', 'on', '--clipboard', 'bidirectional']
     v.customize ['setextradata', 'global', 'GUI/MaxGuestResolution', 'any']
     v.customize ['setextradata', :id, 'CustomVideoMode1', '1280x800x32']
-    v.customize ['modifyvm', :id, '--cableconnected1', 'on']
     # the following command requires Virtalbox Guest Additions to be installed i the box, currently it is not the csase with xenial base box we are using
     # VBoxManage controlvm 'Selenium Fluxbox Trusty' setvideomodehint 1280 800 32
   end

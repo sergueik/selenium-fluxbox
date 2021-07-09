@@ -165,7 +165,7 @@ declare -A key_hash=( ['keyserver.ubuntu.com']='1397BC53640DB551' ['keyserver.ub
 for server in "${!key_hash[@]}"; do sudo apt-key adv --keyserver "${server}" --recv-keys "${key_hash[$server]}"; done
 
 apt-get -qq update
-apt-get -qqy install fluxbox xorg unzip vim default-jre rungetty wget libxml2-utils jq
+apt-get -qqy install fluxbox xorg xserver-xorg-video-dummy xvfb unzip vim default-jre rungetty wget libxml2-utils jq
 #=========================================================
 USE_ORACLE_JAVA='#{use_oracle_java}'
 if  [ ! -z "${USE_ORACLE_JAVA}" ] ; then
@@ -579,12 +579,9 @@ sudo reboot
   config.vm.provider :virtualbox do |v|
     v.gui = true
     v.name = 'Selenium Fluxbox Trusty'
-    v.customize ['modifyvm', :id, '--memory', box_memory ]
-    v.customize ['modifyvm', :id, '--vram', '16']
-    v.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+    v.customize ['modifyvm', :id, '--memory', box_memory, '--vram', '16', '--ioapic', 'on', '--cableconnected1', 'on', '--clipboard', 'bidirectional']
     v.customize ['setextradata', 'global', 'GUI/MaxGuestResolution', 'any']
     v.customize ['setextradata', :id, 'CustomVideoMode1', '1280x800x32']
-    v.customize ['modifyvm', :id, '--cableconnected1', 'on']
     # VBoxManage controlvm 'Selenium Fluxbox Trusty' setvideomodehint 1280 800 32
   end
 end
