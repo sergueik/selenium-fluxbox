@@ -32,6 +32,7 @@
     <selenium-firefox-driver.version>3.13.0</selenium-firefox-driver.version>
     <testng.version>6.14.3</testng.version>
     <guava.version>23.1</guava.version>
+    <jsoup.version>1.14.2</jsoup.version>
     <browser.name>firefox</browser.name>
     <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
     <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
@@ -69,7 +70,7 @@
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
-      <version>1.10.2</version>
+      <version>${jsoup.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
