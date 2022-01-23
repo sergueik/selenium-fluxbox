@@ -220,7 +220,9 @@ if VM was launched through Virtual Box UI directly.
 *  shell script to [install chrome latest RPM](https://intoli.com/install-google-chrome.sh) via `curl $URL | bash - ` from JDK11 + chrome [Dockerfile](https://hub.docker.com/r/bigtincan/jdk11-chrome/dockerfile)
 * [xserver-xorg-video-dummy driver](https://techoverflow.net/2019/02/23/how-to-run-x-server-using-xserver-xorg-video-dummy-driver-on-ubuntu/)
 * an old instruction for headless debian [setup](http://cosmolinux.no-ip.org/raconetlinux2/dummy_radeon_nvidia.html) (via dumy X driver)
-
+ * chromium snapshots release directories
+     + [windows](https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Win/)
+     + [linux](https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Linux_x64/)
 ### License
 This project is licensed under the terms of the MIT license.
 
