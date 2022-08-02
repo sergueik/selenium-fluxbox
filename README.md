@@ -120,7 +120,7 @@ With Chrome, `stable`, `unstable` or `beta` are valid versions, appropriate `.de
 [google repository](https://www.google.com/linuxrepositories/) will be installed.
 
 The `Vagrantfile` automates the download  of specific old build of from
-[https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php). Note, there are no old Chrome builds __87.x__, __88.x__, or __89.x__ there .
+[https://www.slimjet.com/chrome/google-chrome-old-version.php](https://www.slimjet.com/chrome/google-chrome-old-version.php). Note, there are no old Chrome builds __87.x__, __88.x__, or __89.x__ and __91__through __101__ there 
 Check if desired version is available. There is also were few relatively recent 32-bit Chrome builds there.
 Note the Chrome browser is often re-released over time with the same major and minor version like
 e.g. __69.0.3497.100__ vs. __69.0.3497.92__
@@ -197,6 +197,7 @@ if VM was launched through Virtual Box UI directly.
   * [Getting Started with Headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome) and [](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md).
   * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
   * desktop shortcut generation e.g. [example](https://github.com/regaur/puppeteer/blob/master/puppeteer.install) for ArchLinux, chromium puppeteer
+  * [ruby gem for authoring and managing tmux sessions easily](https://github.com/tmuxinator/tmuxinator)
 
 ### See also:
 
