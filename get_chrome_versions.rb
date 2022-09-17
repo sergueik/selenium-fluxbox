@@ -132,8 +132,7 @@ end
 if $RELEASE.nil?
   # TODO:
   # puts downloads.sort_by(&:key).first
-
-  last_download = (downloads.sort_by {|build, url| build}).last
+  last_download = (downloads.sort_by {|build, url| build.to_i}).last
   # no longer a hash
   pp [last_download[0], "#{$BASE_DOWNLOAD}/#{last_download[1]}"]
 else
