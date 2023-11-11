@@ -196,12 +196,41 @@ To automatically download the stable chromedriver for Chrome testing from [Chrom
 
 ![chrome-for-testing](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/capture-chrome-for-testing.png)
 
-one can use this command:
+one can use this command (currntly it is quite long):
+
 ```sh
-xmllint --htmlout --html --xpath "//section[@id='stable']/div[@class='table-wrapper']/table//tr/th[code  = 'chromedriver' ]/../th[code = 'win32']/../td[1]/code/text()" chrome-for-testing.html 2>/dev/null
+xmllint --htmlout --html --xpath "//section[@id='stable']/div[@class='table-wrapper']/table/tbody/tr/th[code='chromedriver']/../th[code = 'linux64']/../td[code='200']/../td[1]/code/text()" chrome-for-testing.html 2>/dev/null
 ```
 
+this will print:
+```text
+https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chromedriver-linux64.zip
+```
 
+* NOTE: the "and" in the condition also appears to work:
+
+```sh
+
+xmllint --htmlout --html --xpath "//section[@id='stable']/div[@class='table-wrapper']/table/tbody/tr[th/code='chromedriver' and td/code='200' and th/code='linux64']/td[1]/code/text()" chrome-for-testing.html 2>/dev/null
+```
+```text
+https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chromedriver-linux64.zip
+```
+and so is the following two step extraction:
+```sh
+xmllint --htmlout --html --xpath "//div[@class='table-wrapper summary']/table/tbody/tr[th/a/text()='Stable']/td[1]/code/text()" chrome-for-testing.html 2>/dev/null
+
+```
+```text
+119.0.6045.105
+```
+```sh
+
+xmllint --htmlout --html --xpath "//code[contains(text(),'/119.0.6045.105/') and contains(text(),'chromedriver-linux64')]/text()" chrome-for-testing.html 2>/dev/null
+```
+```text
+https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chromedriver-linux64.zip
+```
 ### Work in Progress
 
   * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
