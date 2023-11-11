@@ -13,7 +13,9 @@ It is not uncommon that the 'bleeding edge' versions of the drivers don't work w
 `org.openqa.selenium.WebDriverException: unknown error: Chrome version must be >= 52.0.2743.0 ...` (this has been observed quie often during early Selenium __3.x__, and then again with __4.0.alpha__ releases).
 Likewise the Selenium hub error on the screenshot
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/session_error.png)
+
 illustrates a likely versions mismatch between Selenium, Geckodriver and Firefox, or Selenium, ChromeDriver and Chrome.
+
 
 One often wishes to enforce specific past versions of Selenium-based toolchain.
 Vagrant makes this easy.
@@ -188,6 +190,18 @@ but only if the Virtual Box VM was launched by vagrant, it will refuse to give t
 if VM was launched through Virtual Box UI directly.
 
 
+### Latest Chrome for Testing
+
+To automatically download the stable chromedriver for Chrome testing from [Chrome for Testing availability](https://googlechromelabs.github.io/chrome-for-testing/) page
+
+![chrome-for-testing](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/capture-chrome-for-testing.png)
+
+one can use this command:
+```sh
+xmllint --htmlout --html --xpath "//section[@id='stable']/div[@class='table-wrapper']/table//tr/th[code  = 'chromedriver' ]/../th[code = 'win32']/../td[1]/code/text()" chrome-for-testing.html 2>/dev/null
+```
+
+
 ### Work in Progress
 
   * Probe [http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/](http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/) and /or [https://google-chrome.en.uptodown.com/ubuntu/old](https://google-chrome.en.uptodown.com/ubuntu/old) for a valid past Chrome build is a
@@ -198,32 +212,33 @@ if VM was launched through Virtual Box UI directly.
   * [xvfb customizations, video recording](https://github.com/aimmac23/selenium-video-node)
   * desktop shortcut generation e.g. [example](https://github.com/regaur/puppeteer/blob/master/puppeteer.install) for ArchLinux, chromium puppeteer
   * [ruby gem for authoring and managing tmux sessions easily](https://github.com/tmuxinator/tmuxinator)
-
+  * [constructing expression for XPath with multiple conditions in xmllint](https://stackoverflow.com/questions/10247978/xpath-with-multiple-conditions)
 ### See also:
 
- * [Google Chrome Old Versions - for Windows only](https://google_chrome.en.downloadastro.com/old_versions/)
- * [Selected old versions](https://google-chrome.en.uptodown.com/ubuntu/old)
- * [chromium old builds for Ubuntu](https://www.ubuntuupdates.org/pm/google-chrome-stable)
- * [table](http://chromedriver.chromium.org/downloads) of matching Chromedriver and Chrome browser versions
- * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) allows the Java test suite to specify the browser driver verson for all standard browsers.
- * [abhishek8908/selenium-drivers-download-plugin](https://github.com/abhishek8908/selenium-drivers-download-plugin) maven plugin which downloads specific versions of chromedriver, iedriverServer, edge or geckodriver by executing a specific custom goal `generateDrivers` during maven life cycle.
- * [how to disable Chrome Browser auto update](https://stackoverflow.com/questions/18483087/how-to-disable-google-chrome-auto-update)
- * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
- * [examples and documentation](https://www.codota.com/code/java/classes/de.saumya.mojo.ruby.script.ScriptFactory)
- * [parallel testing testng framerowk](https://github.com/CybertekSchool/parallel-multi-browser-testng-framework) - note utility code redundant across various projects of that author.
- * [the Chromium Projects](https://www.chromium.org/getting-involved/download-chromium)
- * Chromium [Puppeteer](https://github.com/GoogleChrome/puppeteer) - headless [Dockerfile](https://github.com/landaida/puppeteer/blob/master/Dockerfile) for Debian-based box.
- * [Puppeteer](https://github.com/GoogleChrome/puppeteer) visual [recorder](https://github.com/euprogramador/puppeteer-screen-recorder) with Xvfb, standalone
- * [Puppeteer](https://github.com/GoogleChrome/puppeteer) example [tests](https://github.com/checkly/puppeteer-examples)
- * Puppeteer web scraping [tutorial](https://github.com/emadehsan/thal)
- * [sdkman](https://sdkman.io/) - parallel version manager (in particular, of JDK).
- * [oracle logins](http://bugmenot.com/view/oracle.com) for downloading Java SE 8 and earlier from oracle technet [Java Archive Downloads](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html) page.
-*  shell script to [install chrome latest RPM](https://intoli.com/install-google-chrome.sh) via `curl $URL | bash - ` from JDK11 + chrome [Dockerfile](https://hub.docker.com/r/bigtincan/jdk11-chrome/dockerfile)
-* [xserver-xorg-video-dummy driver](https://techoverflow.net/2019/02/23/how-to-run-x-server-using-xserver-xorg-video-dummy-driver-on-ubuntu/)
-* an old instruction for headless debian [setup](http://cosmolinux.no-ip.org/raconetlinux2/dummy_radeon_nvidia.html) (via dumy X driver)
- * chromium snapshots release directories
+  * [Google Chrome Old Versions - for Windows only](https://google_chrome.en.downloadastro.com/old_versions/)
+  * [Selected old versions](https://google-chrome.en.uptodown.com/ubuntu/old)
+  * [chromium old builds for Ubuntu](https://www.ubuntuupdates.org/pm/google-chrome-stable)
+  * [table](http://chromedriver.chromium.org/downloads) of matching Chromedriver and Chrome browser versions
+  * [bonigarcia/webdrivermanager](https://github.com/bonigarcia/webdrivermanager) allows the Java test suite to specify the browser driver verson for all standard browsers.
+  * [abhishek8908/selenium-drivers-download-plugin](https://github.com/abhishek8908/selenium-drivers-download-plugin) maven plugin which downloads specific versions of chromedriver, iedriverServer, edge or geckodriver by executing a specific custom goal `generateDrivers` during maven life cycle.
+  * [how to disable Chrome Browser auto update](https://stackoverflow.com/questions/18483087/how-to-disable-google-chrome-auto-update)
+  * [xvfb headless selenium box blog](https://altarmoss.wordpress.com/2017/05/22/how-to-create-a-headless-selenium-server-vagrant-box/)
+  * [examples and documentation](https://www.codota.com/code/java/classes/de.saumya.mojo.ruby.script.ScriptFactory)
+  * [parallel testing testng framerowk](https://github.com/CybertekSchool/parallel-multi-browser-testng-framework) - note utility code redundant across various projects of that author.
+  * [the Chromium Projects](https://www.chromium.org/getting-involved/download-chromium)
+  * Chromium [Puppeteer](https://github.com/GoogleChrome/puppeteer) - headless [Dockerfile](https://github.com/landaida/puppeteer/blob/master/Dockerfile) for Debian-based box.
+  * [Puppeteer](https://github.com/GoogleChrome/puppeteer) visual [recorder](https://github.com/euprogramador/puppeteer-screen-recorder) with Xvfb, standalone
+  * [Puppeteer](https://github.com/GoogleChrome/puppeteer) example [tests](https://github.com/checkly/puppeteer-examples)
+  * Puppeteer web scraping [tutorial](https://github.com/emadehsan/thal)
+  * [sdkman](https://sdkman.io/) - parallel version manager (in particular, of JDK).
+  * [oracle logins](http://bugmenot.com/view/oracle.com) for downloading Java SE 8 and earlier from oracle technet [Java Archive Downloads](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html) page.
+  *  shell script to [install chrome latest RPM](https://intoli.com/install-google-chrome.sh) via `curl $URL | bash - ` from JDK11 + chrome [Dockerfile](https://hub.docker.com/r/bigtincan/jdk11-chrome/dockerfile)
+  * [xserver-xorg-video-dummy driver](https://techoverflow.net/2019/02/23/how-to-run-x-server-using-xserver-xorg-video-dummy-driver-on-ubuntu/)
+  * an old instruction for headless debian [setup](http://cosmolinux.no-ip.org/raconetlinux2/dummy_radeon_nvidia.html) (via dumy X driver)
+  * chromium snapshots release directories
      + [windows](https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Win/)
      + [linux](https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Linux_x64/)
+
 ### License
 This project is licensed under the terms of the MIT license.
 
