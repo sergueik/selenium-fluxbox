@@ -7,9 +7,9 @@ curl -sko $TMPFILE $URL
 echo "Examine $TMPFILE"
 VERSION=$(xmllint --htmlout --html --xpath "//div[@class='table-wrapper summary']/table/tbody/tr[th/a/text()='Stable']/td[1]/code/text()" $TMPFILE 2>/dev/null)
 echo "About to download chromedriver version $VERSION"
-URL=$(xmllint --htmlout --html --xpath "//section[@id='stable']/div[@class='table-wrapper']/table/tbody/tr[th/code='chromedriver' and td/code='200' and th/code='$PLATFORM']/td[1]/code/text()" $TMPFILE 2>/dev/null)
-echo "About to download chromedriver URL $URL"
-curl -sko $DRIVERFILE $URL
+DRIVERURL=$(xmllint --htmlout --html --xpath "//section[@id='stable']/div[@class='table-wrapper']/table/tbody/tr[th/code='chromedriver' and td/code='200' and th/code='$PLATFORM']/td[1]/code/text()" $TMPFILE 2>/dev/null)
+echo "About to download chromedriver URL $DRIVERURL"
+curl -sko $DRIVERFILE $DRIVERURL
 echo "Verify contents of $DRIVERFILE"
 unzip -t $DRIVERFILE 
 #
