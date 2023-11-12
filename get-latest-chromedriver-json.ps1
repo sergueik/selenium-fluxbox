@@ -37,3 +37,11 @@ $response  = Invoke-WebRequest -uri  $driverurl -OutFile $driverfile -passthru
 write-output $response 
 get-item -path $driverfile
 
+# alternatively use invoke-restmethod cmdlet, will have the result in JSON
+
+$content_type = 'application/json'
+$result = invoke-restmethod -uri $url -method Get -contenttype $content_type
+
+$result.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
+write-host  ('will download driver from URL {0}' -f $driverurl)
+
