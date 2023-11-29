@@ -19,27 +19,45 @@
 #THE SOFTWARE.
 
 param (
-  [string]$url ='https://googlechromelabs.github.io/chrome-for-testing/'
-)
-# use invoke-restmethod cmdlet to read page, but
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+  [string]$url = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json',
+  [switch]$debug
 
+)
+[bool]$debug_flag = [bool]$psboundparameters['debug'].ispresent
+
+# NOTE:
+# 'https://googlechromelabs.github.io/chrome-for-testing/' is html
+
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+if ($debug_flag) {
+  Invoke-WebRequest -uri $url
+}
 $result = Invoke-WebRequest -uri $url
 $o = $result.Content| convertfrom-json
-
+if ($debug_flag) {
+  # NOTE: is quite big for printing in console
+  write-host ($o |convertto-json -depth 5)
+}
 $o.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
-write-host  ('will download driver from URL {0}' -f $driverurl)
-
-write-host ('Invoke-WebRequest -uri {0} -OutFile {1} -passthru' -f $url, $outfile)
 
 $driverfile = $env:TEMP + '\' + 'chromedriver-win64.zip'
-$response  = Invoke-WebRequest -uri  $driverurl -OutFile $driverfile -passthru
-write-output $response 
+if ($debug_flag) {
+  write-host ('Invoke-WebRequest -uri {0} -OutFile {1} -passthru' -f $driverurl, $driverfile)
+}
+
+$response = Invoke-WebRequest -uri $driverurl -OutFile $driverfile -passthru
+# NOTE: do not print the full $response: which has heavy RawContent
+if ($debug_flag) {
+  write-host $response.StatusCode
+}
 get-item -path $driverfile
 
 # alternatively use invoke-restmethod cmdlet, will have the result in JSON
 
 $content_type = 'application/json'
+if ($debug_flag) {
+  write-host ('invoke-restmethod -uri {0} -method Get -contenttype {1}' -f $url, $content_type)
+}
 $result = invoke-restmethod -uri $url -method Get -contenttype $content_type
 
 $result.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
