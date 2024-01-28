@@ -1,4 +1,4 @@
-#Copyright (c) 2023 Serguei Kouzmine
+#Copyright (c) 2023,2024 Serguei Kouzmine
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
@@ -63,3 +63,10 @@ $result = invoke-restmethod -uri $url -method Get -contenttype $content_type
 $result.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
 write-host  ('will download driver from URL {0}' -f $driverurl)
 
+cd $env:temp
+expand-archive chromedriver-win64.zip
+copy-item .\chromedriver-win64\chromedriver-win64\chromedriver.exe "${env:userprofile}\Downloads\chromedriver.exe" -force
+get-item "${env:userprofile}\Downloads\chromedriver.exe"  | select-object -property VersionInfo.ProductVersion
+# blank
+
+& "${env:userprofile}\Downloads\chromedriver.exe" -version
