@@ -62,10 +62,12 @@ $result = invoke-restmethod -uri $url -method Get -contenttype $content_type
 
 $result.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
 write-host  ('will download driver from URL {0}' -f $driverurl)
-
+$script_path = (get-location).path
 cd $env:temp
-expand-archive chromedriver-win64.zip
+expand-archive chromedriver-win64.zip -Force
+get-process -name 'ChromeDriver' -erroraction silentlycontinue | stop-process
 copy-item .\chromedriver-win64\chromedriver-win64\chromedriver.exe "${env:userprofile}\Downloads\chromedriver.exe" -force
+cd $script_path
 get-item "${env:userprofile}\Downloads\chromedriver.exe"  | select-object -property VersionInfo.ProductVersion
 # blank
 
