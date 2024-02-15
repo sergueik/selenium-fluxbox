@@ -3,7 +3,6 @@
 # Consult <a href=https://github.com/GoogleChromeLabs/chrome-for-testing#json-api-endpoints>our JSON API endpoints</a> if you’re looking to build automated scripts based on Chrome for Testing release data.
 # however the linked page is also an HTML page and to get just the JSON open the link https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json
 
-SCRIPTDIR=$(pwd)
 JSONFILE='/tmp/get-latest-chromedriver.json'
 URL='https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json'
 DRIVERFILE='/tmp/chromedriver-linux64.zip'
@@ -21,9 +20,9 @@ curl -k -I $DRIVERURL
 echo "curl -k -o $DRIVERFILE $DRIVERURL"
 curl -k -o $DRIVERFILE $DRIVERURL
 echo "Verify contents of $DRIVERFILE"
-unzip -t $DRIVERFILE
-cd /tmp
-unzip -x -o $DRIVERFILE
-cp chromedriver-linux64/chromedriver ~/Downloads
+unzip -t $DRIVERFILE 
+# echo unzip -d '/tmp/' -u $DRIVERFILE
+unzip -d '/tmp/' -u $DRIVERFILE
+cp /tmp/chromedriver-linux64/chromedriver ~/Downloads
+~/Downloads/chromedriver -version
 rm -f $DRIVERFILE
-cd $SCRIPTDIR
