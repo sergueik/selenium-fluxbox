@@ -32,7 +32,10 @@ param (
 if ($debug_flag) {
   Invoke-WebRequest -uri $url
 }
+# https://stackoverflow.com/questions/18770723/hide-progress-of-invoke-webrequest
+$ProgressPreference = 'SilentlyContinue'
 $result = Invoke-WebRequest -uri $url
+$ProgressPreference = 'Continue'
 $o = $result.Content| convertfrom-json
 if ($debug_flag) {
   # NOTE: is quite big for printing in console
@@ -45,7 +48,9 @@ if ($debug_flag) {
   write-host ('Invoke-WebRequest -uri {0} -OutFile {1} -passthru' -f $driverurl, $driverfile)
 }
 
+$ProgressPreference = 'SilentlyContinue'
 $response = Invoke-WebRequest -uri $driverurl -OutFile $driverfile -passthru
+$ProgressPreference = 'Continue'
 # NOTE: do not print the full $response: which has heavy RawContent
 if ($debug_flag) {
   write-host $response.StatusCode
@@ -58,7 +63,9 @@ $content_type = 'application/json'
 if ($debug_flag) {
   write-host ('invoke-restmethod -uri {0} -method Get -contenttype {1}' -f $url, $content_type)
 }
+$ProgressPreference = 'SilentlyContinue'
 $result = invoke-restmethod -uri $url -method Get -contenttype $content_type
+$ProgressPreference = 'Continue'
 
 $result.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
 write-host  ('will download driver from URL {0}' -f $driverurl)
