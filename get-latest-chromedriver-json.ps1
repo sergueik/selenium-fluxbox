@@ -75,7 +75,23 @@ expand-archive chromedriver-win64.zip -Force
 get-process -name 'ChromeDriver' -erroraction silentlycontinue | stop-process
 copy-item .\chromedriver-win64\chromedriver-win64\chromedriver.exe "${env:userprofile}\Downloads\chromedriver.exe" -force
 cd $script_path
+
 get-item "${env:userprofile}\Downloads\chromedriver.exe"  | select-object -property VersionInfo.ProductVersion
-# blank
+
+# NOTE: ProductVersion of the chromedriver.exe is often blank
 
 & "${env:userprofile}\Downloads\chromedriver.exe" -version
+
+# Program 'chromedriver.exe' failed to run: The specified executable is not a valid application for this OS platform.
+# NOTE: last supported of Chrome browse for Windows 7 and 8.1 is 109
+# Later builds of chrome driver is not compatible with older versions of Windows:
+
+# Windows 10
+# ChromeDriver 123.0.6312.86 (9b72c47a053648d405376c5cf07999ed626728da-refs/branch-heads/6312@{#698})
+
+# Windows 7
+# This version of C:\Users\sergueik\Desktop\chromedriver.exe is not compatible with the version of Windows you're running. 
+# Check your computer's system information to see whether you need a x86 (32-bit) or x64 (64-bit) version of the program, and then contact the software publisher.
+# Windows 8.1
+# this app can't run on your PC
+

@@ -23,6 +23,10 @@ echo "Verify contents of $DRIVERFILE"
 unzip -t $DRIVERFILE 
 # echo unzip -d '/tmp/' -u $DRIVERFILE
 unzip -d '/tmp/' -u $DRIVERFILE
+# TODO: handle
+# archive:  /tmp/chromedriver-linux64.zip
+# replace /tmp/chromedriver-linux64/LICENSE.chromedriver? [y]es, [n]o, [A]ll, [N]one, [r]ename: A
+
 cp /tmp/chromedriver-linux64/chromedriver ~/Downloads
 ~/Downloads/chromedriver -version
 rm -f $DRIVERFILE
