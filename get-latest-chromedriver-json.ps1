@@ -27,7 +27,9 @@ param (
 
 # NOTE:
 # 'https://googlechromelabs.github.io/chrome-for-testing/' is html
-
+# NOTE:
+# https://chromedriver.storage.googleapis.com/index.html?path=109.0.5414.74/
+# for Windows 7 and Windows 8
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
 if ($debug_flag) {
   Invoke-WebRequest -uri $url
@@ -94,4 +96,14 @@ get-item "${env:userprofile}\Downloads\chromedriver.exe"  | select-object -prope
 # Check your computer's system information to see whether you need a x86 (32-bit) or x64 (64-bit) version of the program, and then contact the software publisher.
 # Windows 8.1
 # this app can't run on your PC
+
+# to check the chrome browser version on windows need to examine the file metadata
+#
+# get-item -path 'C:\Program Files\Google\Chrome\Application\chrome.exe' | select-object -expandproperty VersionInfo | select-object -expandproperty ProductVersion
+# wll return
+# 124.0.6367.92
+# alternatively use semantic fields explicitly
+# $o = get-item -path 'C:\Program Files\Google\Chrome\Application\chrome.exe' | select-object -expandproperty VersionInfo | select-object -first 1
+# write-output ('{0}.{1}.{2}.{3}' -f $o.ProductMajorPart,$o.ProductMinorPart,$o.ProductBuildPart,$o.ProductPrivatePart)
+
 

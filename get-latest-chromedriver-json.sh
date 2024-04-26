@@ -22,7 +22,11 @@ curl -k -o $DRIVERFILE $DRIVERURL
 echo "Verify contents of $DRIVERFILE"
 unzip -t $DRIVERFILE 
 # echo unzip -d '/tmp/' -u $DRIVERFILE
-unzip -d '/tmp/' -u $DRIVERFILE
+echo 'Stopping chromedriver'
+# NOTE: prevent error with the lock:
+# cp: cannot create  regular file '...chromedriver': Text file busy
+killall chromedriver
+unzip -d '/tmp/' -f -u $DRIVERFILE
 # TODO: handle
 # archive:  /tmp/chromedriver-linux64.zip
 # replace /tmp/chromedriver-linux64/LICENSE.chromedriver? [y]es, [n]o, [A]ll, [N]one, [r]ename: A
@@ -30,3 +34,6 @@ unzip -d '/tmp/' -u $DRIVERFILE
 cp /tmp/chromedriver-linux64/chromedriver ~/Downloads
 ~/Downloads/chromedriver -version
 rm -f $DRIVERFILE
+# to check the chrome browser version on Linux need to run the executable with the version option:
+# google-chrome -version
+# Google Chrome 124.0.6367.60
