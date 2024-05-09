@@ -19,6 +19,6 @@ unzip -t $DRIVERFILE
 # https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chromedriver-linux64.zip
 # echo unzip -d '/tmp/' -u $DRIVERFILE
 unzip -d '/tmp/' -u $DRIVERFILE
-cp /tmp/chromedriver-linux64/chromedriver ~/Downloads
-~/Downloads/chromedriver -version
+cp /tmp/chromedriver-linux64/chromedriver "$HOME/Downloads"
+"$HOME/Downloads/chromedriver" -version
 rm -f $DRIVERFILE
