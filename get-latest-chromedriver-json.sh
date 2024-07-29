@@ -34,10 +34,8 @@ fi
 # cd $(dirname $DRIVERFILE)
 # ls $DRIVERFILE
 echo unzip -d '/tmp/' -u $DRIVERFILE
+rm -fr /tmp/chromedriver-linux64
 unzip -d '/tmp/' -u $DRIVERFILE
-# TODO: handle
-# archive:  /tmp/chromedriver-linux64.zip
-# replace /tmp/chromedriver-linux64/LICENSE.chromedriver? [y]es, [n]o, [A]ll, [N]one, [r]ename: A
 ls /tmp/chromedriver-linux64
 cp /tmp/chromedriver-linux64/chromedriver "$HOME/Downloads"
 "$HOME/Downloads/chromedriver" -version
