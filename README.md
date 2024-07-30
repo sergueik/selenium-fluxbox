@@ -159,6 +159,7 @@ The Chrome Build 70 had multiple releases:
 Not every build is available in slimjet.
 
 ###  Usage with Java projects
+
 A minimal example Java TestNG parallel run Selenium test project is provided in the `example` direcrory:
 
 ![box](https://github.com/sergueik/selenium-fluxbox/blob/master/screenshots/parallel-run-capture.png)
@@ -186,8 +187,8 @@ Host default
   IdentitiesOnly yes
   LogLevel FATAL	
 ```
-but only if the Virtual Box VM was launched by vagrant, it will refuse to give this information e.g.
-if VM was launched through Virtual Box UI directly.
+but only if the Virtual Box VM was started by vagrant. 
+Vagrant will refuse to give this information when VM was launched through Virtual Box UI directly.
 
 
 ### Latest Chrome for Testing

@@ -4,7 +4,7 @@
   <groupId>com.mycompany.app</groupId>
   <artifactId>parallel-browser-test</artifactId>
   <packaging>jar</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.2-SNAPSHOT</version>
   <name>app</name>
   <url>http://maven.apache.org</url>
   <developers>
@@ -38,7 +38,7 @@
     <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
     <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
     <simple-ssh.version>1.0.2</simple-ssh.version>
-    <sshd-core.version>1.3.0</sshd-core.version>
+    <sshd-core.version>2.7.0</sshd-core.version>
   </properties>
   <dependencies>
     <dependency>
