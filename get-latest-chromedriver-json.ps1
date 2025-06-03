@@ -1,4 +1,4 @@
-#Copyright (c) 2023,2024 Serguei Kouzmine
+#Copyright (c) 2023-2025 Serguei Kouzmine
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,34 @@ $result.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 
 write-host  ('will download driver from URL {0}' -f $driverurl)
 $script_path = (get-location).path
 cd $env:temp
-expand-archive chromedriver-win64.zip -Force
+
+
+
+# NOTE: on Windows 8.1 and below need alternative method:
+# expand-archive : The term 'expand-archive' is not recognized as the name of acmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+
+
+expand-archive chromedriver-win64.zip -Force -erroraction silentlycontinue
+
+# https://learn.microsoft.com/en-us/dotnet/api/system.io.compression.zipfile.extracttodirectory?view=netframework-4.8
+# 	https://learn.microsoft.com/en-us/dotnet/standard/io/how-to-compress-and-extract-files
+# Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem,
+# Requires .NET Framework 4.5 or later
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem <#, System.IO.Compression.ZipFile #>
+remove-item -path "${env:TEMP}\chromedriver-win64\chromedriver-win64" -recurse -Force -erroraction silentlycontinue
+# NOTE: cannot rely on current directory with System.IO.Compression.ZipFile
+#  [System.IO.Compression.ZipFile]::ExtractToDirectory('chromedriver-win64.zip', 'chromedriver-win64') 
+[System.IO.Compression.ZipFile]::ExtractToDirectory("${env:TEMP}\chromedriver-win64.zip", "${env:TEMP}\chromedriver-win64\"  <# , $true  #>)
+# NOTE:argument signature change (uncomment to reproduce):
+# Cannot convert argument "entryNameEncoding", with value: "True", for "ExtractToDirectory" to type "System.Text.Encoding": "Cannot convert value "True" to type "System.Text.Encoding". Error: "Invalid cast from 'System.Boolean' to 'System.Text.Encoding'.""
+# Replace "Path\To\Your\Archive.zip" with the actual path to your zip file and "Path\To\Destination" with the desired output directory. 
+# The $true parameter will overwrite existing files if they exist. 
+# can also use a third-party tool like 7-Zip with Start-Process. 
+# Start-Process 'C:\Program Files\7-Zip\7z.exe' -ArgumentList "x "chromedriver-win64.zip"" -o""chromedriver-win64""" -Wait
+
+
+
+
 get-process -name 'ChromeDriver' -erroraction silentlycontinue | stop-process
 copy-item .\chromedriver-win64\chromedriver-win64\chromedriver.exe "${env:userprofile}\Downloads\chromedriver.exe" -force
 cd $script_path
@@ -84,6 +111,7 @@ get-item "${env:userprofile}\Downloads\chromedriver.exe"  | select-object -prope
 
 & "${env:userprofile}\Downloads\chromedriver.exe" -version
 
+# NOTE: Windows 7,8.1
 # Program 'chromedriver.exe' failed to run: The specified executable is not a valid application for this OS platform.
 # NOTE: last supported of Chrome browse for Windows 7 and 8.1 is 109
 # Later builds of chrome driver is not compatible with older versions of Windows:
