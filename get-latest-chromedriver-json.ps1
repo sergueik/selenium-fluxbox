@@ -38,6 +38,64 @@ if ($debug_flag) {
   # NOTE: is quite big for printing in console
   write-host ($o |convertto-json -depth 5)
 }
+# NOTE $o.versions is an array of
+<#
+[
+ {
+    "version":  "115.0.5790.170",
+    "revision":  "1148114",
+    "downloads":  {
+                      "chrome":  [
+                                     {
+                                         "platform":  "linux64",
+                                         "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/linux64/chrome-linux64.zip"
+                                     },
+                                     {
+                                         "platform":  "mac-arm64",
+                                         "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/mac-arm64/chrome-mac-arm64.zip"
+                                     },
+                                     {
+                                         "platform":  "mac-x64",
+                                         "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/mac-x64/chrome-mac-x64.zip"
+                                     },
+                                     {
+                                         "platform":  "win32",
+                                         "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/win32/chrome-win32.zip"
+                                     },
+                                     {
+                                         "platform":  "win64",
+                                         "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/win64/chrome-win64.zip"
+                                     }
+                                 ],
+                      "chromedriver":  [
+                                           {
+                                               "platform":  "linux64",
+                                               "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/linux64/chromedriver-linux64.zip"
+                                           },
+                                           {
+                                               "platform":  "mac-arm64",
+                                               "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/mac-arm64/chromedriver-mac-arm64.zip"
+                                           },
+                                           {
+                                               "platform":  "mac-x64",
+                                               "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/mac-x64/chromedriver-mac-x64.zip"
+                                           },
+                                           {
+                                               "platform":  "win32",
+                                               "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/win32/chromedriver-win32.zip"
+                                           },
+                                           {
+                                               "platform":  "win64",
+                                               "url":  "https://storage.googleapis.com/chrome-for-testing-public/115.0.5790.170/win64/chromedriver-win64.zip"
+                                           }
+                                       ]
+                  }
+}
+]
+
+#>
+# NOTE: not all versions have chromedriver in downloads
+
 $o.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
 
 $driverfile = $env:TEMP + '\' + 'chromedriver-win64.zip'
