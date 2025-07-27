@@ -186,12 +186,16 @@ get-item "${env:userprofile}\Downloads\chromedriver.exe"  | select-object -prope
 # this app can't run on your PC
 
 # to check the chrome browser version on windows need to examine the file metadata
-#
-# get-item -path 'C:\Program Files\Google\Chrome\Application\chrome.exe' | select-object -expandproperty VersionInfo | select-object -expandproperty ProductVersion
+# Get-ItemPropertyValue cmdlet is to retrieve the value of a specific property of an item in the reistry with PowerShell 
+# 'App Paths' is where system keeps known application paths 
+# Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
+# Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe' -name '(default)'|set-variable -name  application_path
+
+# get-item -path $application_path | select-object -expandproperty VersionInfo | select-object -expandproperty ProductVersion
 # wll return
 # 124.0.6367.92
-# alternatively use semantic fields explicitly
-# $o = get-item -path 'C:\Program Files\Google\Chrome\Application\chrome.exe' | select-object -expandproperty VersionInfo | select-object -first 1
+# alternatively use semantic field Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Pathss explicitly
+# $o = get-item -path $application_path | select-object -expandproperty VersionInfo | select-object -first 1
 # write-output ('{0}.{1}.{2}.{3}' -f $o.ProductMajorPart,$o.ProductMinorPart,$o.ProductBuildPart,$o.ProductPrivatePart)
 
 
