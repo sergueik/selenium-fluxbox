@@ -32,11 +32,11 @@ param (
 # for Windows 7 and Windows 8
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
 if ($debug_flag) {
-  Invoke-WebRequest -uri $url
+  Invoke-WebRequest -uri $url -UseBasicParsing
 }
 # https://stackoverflow.com/questions/18770723/hide-progress-of-invoke-webrequest
 $ProgressPreference = 'SilentlyContinue'
-$result = Invoke-WebRequest -uri $url
+$result = Invoke-WebRequest -uri $url -UseBasicParsing
 $ProgressPreference = 'Continue'
 $o = $result.Content| convertfrom-json
 if ($debug_flag) {
@@ -105,11 +105,11 @@ $o.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win6
 
 $driverfile = $env:TEMP + '\' + 'chromedriver-win64.zip'
 if ($debug_flag) {
-  write-host ('Invoke-WebRequest -uri {0} -OutFile {1} -passthru' -f $driverurl, $driverfile)
+  write-host ('Invoke-WebRequest -uri {0} -UseBasicParsing -OutFile {1} -passthru' -f $driverurl, $driverfile)
 }
 
 $ProgressPreference = 'SilentlyContinue'
-$response = Invoke-WebRequest -uri $driverurl -OutFile $driverfile -passthru
+$response = Invoke-WebRequest -uri $driverurl -UseBasicParsing -OutFile $driverfile -passthru
 $ProgressPreference = 'Continue'
 # NOTE: do not print the full $response: which has heavy RawContent
 if ($debug_flag) {
@@ -121,10 +121,10 @@ get-item -path $driverfile
 
 $content_type = 'application/json'
 if ($debug_flag) {
-  write-host ('invoke-restmethod -uri {0} -method Get -contenttype {1}' -f $url, $content_type)
+  write-host ('invoke-restmethod -uri {0} -UseBasicParsing -method Get -contenttype {1}' -f $url, $content_type)
 }
 $ProgressPreference = 'SilentlyContinue'
-$result = invoke-restmethod -uri $url -method Get -contenttype $content_type
+$result = invoke-restmethod -uri $url -UseBasicParsing -method Get -contenttype $content_type
 $ProgressPreference = 'Continue'
 
 $result.channels.Stable.downloads.chromedriver | where-object { $_.platform -eq 'win64' } | select-object -expandproperty url | set-variable -name driverurl
@@ -186,15 +186,15 @@ get-item "${env:userprofile}\Downloads\chromedriver.exe"  | select-object -prope
 # this app can't run on your PC
 
 # to check the chrome browser version on windows need to examine the file metadata
-# Get-ItemPropertyValue cmdlet is to retrieve the value of a specific property of an item in the reistry with PowerShell 
+# get-itempropertyValue cmdlet is to retrieve the value of a specific property of an item in the reistry with PowerShell 
 # 'App Paths' is where system keeps known application paths 
-# Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
-# Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe' -name '(default)'|set-variable -name  application_path
+# get-itemproperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
+# get-itempropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe' -name '(default)'|set-variable -name  application_path
 
 # get-item -path $application_path | select-object -expandproperty VersionInfo | select-object -expandproperty ProductVersion
 # wll return
 # 124.0.6367.92
-# alternatively use semantic field Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Pathss explicitly
+# alternatively use semantic field get-itemproperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Pathss explicitly
 # $o = get-item -path $application_path | select-object -expandproperty VersionInfo | select-object -first 1
 # write-output ('{0}.{1}.{2}.{3}' -f $o.ProductMajorPart,$o.ProductMinorPart,$o.ProductBuildPart,$o.ProductPrivatePart)
 
