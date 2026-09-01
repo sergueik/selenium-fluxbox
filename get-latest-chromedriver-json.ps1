@@ -19,7 +19,6 @@
 #THE SOFTWARE.
 
 param (
-  [string]$url = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json',
   [int] $version = -1,
   [switch]$verbose,
   [switch]$debug  
@@ -28,7 +27,7 @@ param (
 
 function get_lastgood_url { 
   param (
-    [string]$url = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json'
+    [String] $url = 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json'
   )
 
   # NOTE:
@@ -62,14 +61,13 @@ function get_lastgood_url {
 
 function get_version_url {
   param(
+    [String] $url = 'https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json',
     [int] $version = 151
   )
 
   $ProgressPreference = 'SilentlyContinue'
-  $url = 'https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json'
   $result = invoke-webrequest -uri $url -UseBasicParsing
   $ProgressPreference = 'Continue'
-
 
   $o = $result.Content| convertfrom-json
   $o.versions
