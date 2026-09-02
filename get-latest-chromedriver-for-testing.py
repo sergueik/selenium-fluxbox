@@ -110,69 +110,22 @@ def choose_cft_url(feed: dict, version: str, platform: str) -> str :
     rows = feed['versions']
 
     if version is None:
-        entry = max(
-            rows,
-            key=lambda v: tuple(int(x) for x in v['version'].split('.'))
-        )
+        entry = max( rows, key=lambda row: tuple(int(x) for x in row['version'].split('.')))
     elif '.' not in version:
-        matches = [
-            row for row in rows
-            if row['version'].split('.')[0] == version
-        ]
+        matches = [ row for row in rows if row['version'].split('.')[0] == version ]
         if not matches:
-            print('no matches')
             return None
 
-        entry = max(
-            matches,
-            key=lambda v: tuple(int(x) for x in v['version'].split('.'))
-        )
+        entry = max( matches, key=lambda v: tuple(int(x) for x in v['version'].split('.')) )
     else:
-        entry = next(
-            (row for row in rows if row['version'] == version),
-            None
-        )
+        entry = next(  (row for row in rows if row['version'] == version), None )
 
     if not entry:
-        print(f'no entry for version {version}')
         return None
-    rows2 =  entry['downloads']['chromedriver']
-    print('examine entry')
-    pprint(rows2)
-    url = next((row["url"] for row in rows2 if row.get('platform') == platform), None)
 
-    #url = next(
-    #    (
-    #        row.get('url')
-    #        for row in entry['downloads']['chromedriver']
-    #        if row.get('platform') == platform
-    #    ),
-    #    None
-    #)
+    url = next((row['url'] for row in entry['downloads']['chromedriver'] if row.get('platform') == platform), None)
 
-    print(f'url {url} for version {version} platform {platform}')
     return url
-
-def choose_cft_entry(feed: dict, version: str, want_latest: bool) -> dict:
-    rows = feed['versions']
-
-    if want_latest or version is None:
-        # choose newest by semantic version
-        entry = max(rows, key=lambda v: tuple(int(x) for x in v['version'].split('.')))
-        return entry
-
-    # version argument supplied
-    if '.' not in version:  # major only
-        version_major = version
-        matches = [row for row in rows if row['version'].split('.')[0] == version_major]
-        if not matches:
-            return None
-        return max(matches, key=lambda v: tuple(int(x) for x in v['version'].split('.')))
-    else:  # exact string match
-        for row in rows:
-            if row['version'] == version:
-                return row
-        return None
 
 def choose_latest_version_url(feed: dict, platform: str) -> str:
     rows = feed['channels']['Stable']['downloads']['chromedriver']
@@ -181,20 +134,11 @@ def choose_latest_version_url(feed: dict, platform: str) -> str:
     platform_exists = any(row.get('platform') == platform for row in rows)
 
     if not platform_exists:
-        sys.exit(f"[!] platform {platform} not in latest")
+        sys.exit(f'[!] platform {platform} not in latest')
 
     url = next((row['url'] for row in rows if row.get('platform') == platform), None)
     print(f'latest url: {url}')
     return url
-
-def choose_latest_version(feed: dict, platform: str)-> int:
-    number = -1
-    match = re.search(r'/(\d+)\.', choose_latest_version_url(feed, platform))
-
-    if match:
-        number = match.group(1)
-        print(f'latest version: {number}')
-        return number
 
 def build_legacy_url(version: str, platform: str) -> str:
     plat_map = {
@@ -210,7 +154,6 @@ def build_legacy_url(version: str, platform: str) -> str:
 def main():
     args = parse_args()
 
-    # fetch feed once
     if args.latest:
        feed_url = LASTGOOD_VERSION_URL
     else:
@@ -220,12 +163,10 @@ def main():
     if args.version is None:
        args.version = ''
     if args.latest:
-      print(f'args.platform={args.platform}')
       url = choose_latest_version_url(feed, args.platform)
     else:
       url = choose_cft_url(feed, args.version, args.platform)
 
-    print(f'url={url}')
     if args.download is None:
         pass
     else:
