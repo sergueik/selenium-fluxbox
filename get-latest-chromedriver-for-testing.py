@@ -17,7 +17,7 @@ python get-latest-chromedriver-for-testing.py --version 131 --platform win64
 # full version match
 python get-latest-chromedriver-for-testing.py --version 131.0.6533.32 --platform linux64
 
-# default is to return the driver download url.  
+# default is to return the driver download url.
 # use --download option to fetch and unzip the driver to the script directory.
 
 """
@@ -47,8 +47,8 @@ LEGACY_BASE = 'https://chromedriver.storage.googleapis.com'  # for < M115 fallba
 
 def detect_default_platform() -> str:
     """Maps the running OS/arch to a CFT platform key."""
-    # NOTE: when unable to determine, assumes 64-bit linux 
-    # See Also: https://stackoverflow.com/questions/8220108/how-do-i-check-the-operating-system-in-python - sys.platform is less accurate 
+    # NOTE: when unable to determine, assumes 64-bit linux
+    # See Also: https://stackoverflow.com/questions/8220108/how-do-i-check-the-operating-system-in-python - sys.platform is less accurate
     sys_map = {
         ("Windows", "AMD64"): "win64",
         ("Windows", "x86_64"): "win64",
@@ -106,46 +106,95 @@ def parse_args():
     p.add_argument('--out-dir', default='browsers', help='where to unzip if --download')
     return p.parse_args()
 
-# NOTE: unsupported operand type(s) for |: 'type' and 'NoneType'
-def choose_cft_entry(feed: dict, version: str, want_latest: bool):
-    versions = feed['versions']
+def choose_cft_url(feed: dict, version: str, platform: str) -> str :
+    rows = feed['versions']
+
+    if version is None:
+        entry = max(
+            rows,
+            key=lambda v: tuple(int(x) for x in v['version'].split('.'))
+        )
+    elif '.' not in version:
+        matches = [
+            row for row in rows
+            if row['version'].split('.')[0] == version
+        ]
+        if not matches:
+            print('no matches')
+            return None
+
+        entry = max(
+            matches,
+            key=lambda v: tuple(int(x) for x in v['version'].split('.'))
+        )
+    else:
+        entry = next(
+            (row for row in rows if row['version'] == version),
+            None
+        )
+
+    if not entry:
+        print(f'no entry for version {version}')
+        return None
+    rows2 =  entry['downloads']['chromedriver']
+    print('examine entry')
+    pprint(rows2)
+    url = next((row["url"] for row in rows2 if row.get('platform') == platform), None)
+
+    #url = next(
+    #    (
+    #        row.get('url')
+    #        for row in entry['downloads']['chromedriver']
+    #        if row.get('platform') == platform
+    #    ),
+    #    None
+    #)
+
+    print(f'url {url} for version {version} platform {platform}')
+    return url
+
+def choose_cft_entry(feed: dict, version: str, want_latest: bool) -> dict:
+    rows = feed['versions']
 
     if want_latest or version is None:
         # choose newest by semantic version
-        entry = max(versions, key=lambda v: tuple(int(x) for x in v['version'].split('.')))
+        entry = max(rows, key=lambda v: tuple(int(x) for x in v['version'].split('.')))
         return entry
 
     # version argument supplied
     if '.' not in version:  # major only
-        major = version
-        matches = [v for v in versions if v['version'].split('.')[0] == major]
+        version_major = version
+        matches = [row for row in rows if row['version'].split('.')[0] == version_major]
         if not matches:
             return None
         return max(matches, key=lambda v: tuple(int(x) for x in v['version'].split('.')))
     else:  # exact string match
-        for v in versions:
-            if v['version'] == version:
-                return v
+        for row in rows:
+            if row['version'] == version:
+                return row
         return None
 
-def choose_latest(feed: dict, platform: str):
-    versions = feed['channels']['Stable']['downloads']['chromedriver']
-    pprint(versions)
-    # [{'platform': 'linux64', 'url': 'https://storage.googleapis.com/chrome-for-testing-public/152.0.7977.75/linux64/chromedriver-linux64.zip'}
- 
-    platform_exists = any(row.get('platform') == platform for row in versions)
+def choose_latest_version_url(feed: dict, platform: str) -> str:
+    rows = feed['channels']['Stable']['downloads']['chromedriver']
+    pprint(rows)
+
+    platform_exists = any(row.get('platform') == platform for row in rows)
 
     if not platform_exists:
         sys.exit(f"[!] platform {platform} not in latest")
 
-    url = next((row["url"] for row in versions if row.get('platform') == platform), None)
+    url = next((row['url'] for row in rows if row.get('platform') == platform), None)
     print(f'latest url: {url}')
-    
-    match = re.search(r'/(\d+)\.', url)
+    return url
+
+def choose_latest_version(feed: dict, platform: str)-> int:
+    number = -1
+    match = re.search(r'/(\d+)\.', choose_latest_version_url(feed, platform))
 
     if match:
         number = match.group(1)
         print(f'latest version: {number}')
+        return number
 
 def build_legacy_url(version: str, platform: str) -> str:
     plat_map = {
@@ -166,65 +215,36 @@ def main():
        feed_url = LASTGOOD_VERSION_URL
     else:
        feed_url = KNOWN_VERSIONS_URL
-    feed = json.loads(http_get(feed_url))
     pprint(feed_url)
-    # TODO: debug option
-    # pprint(feed)
-    # NOTE: KeyError: 'versions'
+    feed = json.loads(http_get(feed_url))
     if args.version is None:
-       args.version = ''  
+       args.version = ''
     if args.latest:
-      version = choose_latest(feed, args.platform)
-      feed_url = KNOWN_VERSIONS_URL
-      feed = json.loads(http_get(feed_url))
-      entry = choose_cft_entry(feed, version, args.latest)
-    # the existing code logic does not look promising
+      print(f'args.platform={args.platform}')
+      url = choose_latest_version_url(feed, args.platform)
     else:
-      entry = choose_cft_entry(feed, args.version, args.latest)
+      url = choose_cft_url(feed, args.version, args.platform)
 
-    if not entry:
-        # maybe legacy (pre‑115) requested
-        if args.version is None:
-            sys.exit('[!] --version required when querying legacy pre-115 builds')
-        legacy_ver = resolve_legacy_version(args.version)
-        url = build_legacy_url(legacy_ver, args.platform)
-        print(url)
-        if args.download:
-            out_dir = Path(args.out_dir) / legacy_ver
-            out_dir.mkdir(parents=True, exist_ok=True)
-            zip_path = out_dir / Path(url).name
-            print(f"↳ downloading {url} …")
-            urllib.request.urlretrieve(url, zip_path)
-            print("↳ extracting …")
-            unzip(zip_path, out_dir)
-        return
+    print(f'url={url}')
+    if args.download is None:
+        pass
+    else:
+        if args.version == '':
+            match = re.search(r'/(\d+)\.', url)
 
-    # Found CFT entry
-    pprint( entry['downloads']['chromedriver'])
-    # [
-    # {'platform': 'linux64', 'url': 'https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/linux64/chrome-linux64.zip'},
-    # {'platform': 'mac-arm64', 'url': 'https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/mac-arm64/chrome-mac-arm64.zip'},
-    # {'platform': 'mac-x64', 'url': 'https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/mac-x64/chrome-mac-x64.zip'},
-    # {'platform': 'win32', 'url': 'https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/win32/chrome-win32.zip'},
-    # {'platform': 'win64', 'url': 'https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/win64/chrome-win64.zip'}
-    # ]
+            if match:
+                number = match.group(1)
+                print(f'version: {number}')
+        else:
+            number = args.version
 
-    platform_exists = any(row.get('platform') == args.platform for row in entry['downloads']['chromedriver'])
-
-    if not platform_exists:
-        sys.exit(f"[!] platform {args.platform} not in feed for version {entry['version']}")
-
-    url = next((row["url"] for row in entry['downloads']['chromedriver'] if row.get('platform') == args.platform), None)
-    print(url)
-
-    if args.download:
-        out_dir = Path(args.out_dir) / entry["version"]
+        out_dir = Path(args.out_dir) / number
         out_dir.mkdir(parents=True, exist_ok=True)
         zip_path = out_dir / Path(url).name
-        print(f"↳ downloading {url} …")
+        print(f'↳ downloading {url} …')
         urllib.request.urlretrieve(url, zip_path)
-        print("↳ extracting …")
+        print('↳ extracting …')
         unzip(zip_path, out_dir)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
